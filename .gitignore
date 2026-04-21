@@ -1,0 +1,29 @@
+# Segredos — NUNCA no histórico do git
+.env
+*.env
+**/secrets.toml
+
+# ChromaDB (banco local — pode ter gigabytes); mantém só .gitkeep no repo
+chroma_db/**
+!chroma_db/.gitkeep
+
+# Documentos internos da i9+ (sensíveis); mantém estrutura com .gitkeep
+data/empresa/*
+!data/empresa/portfolio/
+!data/empresa/certificacoes/
+!data/empresa/contratos/
+data/empresa/portfolio/*
+!data/empresa/portfolio/.gitkeep
+data/empresa/certificacoes/*
+!data/empresa/certificacoes/.gitkeep
+data/empresa/contratos/*
+!data/empresa/contratos/.gitkeep
+
+# Editais reais (PDFs pesados)
+data/editais/*.pdf
+
+# Python padrão
+__pycache__/
+*.pyc
+.venv/
+dist/
