@@ -1,3 +1,4 @@
 pydantic>=2.5
 pytest>=8.0
 ruff>=0.4
+docling>=2.90.0
