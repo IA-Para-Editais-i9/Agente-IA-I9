@@ -21,6 +21,7 @@ data/empresa/contratos/*
 
 # Editais reais (PDFs pesados)
 data/editais/*.pdf
+outputs/
 
 # Python padrão
 __pycache__/
