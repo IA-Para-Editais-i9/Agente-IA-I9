@@ -23,7 +23,6 @@ class ChromaManager:
     def get_or_create_collection(self, name: str) -> chromadb.Collection:
         
         # obtém ou cria uma coleção pelo nome.
-        Coleções esperadas: 'editais' e 'perfil_empresa'
 
         if name not in self._collections:
             self._collections[name] = self.client.get_or_create_collection(name=name)

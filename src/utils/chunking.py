@@ -9,7 +9,7 @@ def chunk_text(
 ) -> List[str]:
     # divide um texto em chunks com sobreposição.
     
-       if not text:
+    if not text:
         return []
     
     enc = tiktoken.get_encoding(encoding_name)
