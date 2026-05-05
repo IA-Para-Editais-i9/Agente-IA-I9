@@ -34,10 +34,14 @@ def index_company_documents():
         
         for pdf_path in pdf_files:
             # processa cada PDF
+            '''
             temp_ctx = PipelineContext(pdf_path=pdf_path)  
             pipeline = Pipeline([IngestionFilter()])
             pipeline.run(temp_ctx)
-
+            '''
+            temp_ctx = PipelineContext(pdf_path=pdf_path)
+            ingestion.process(temp_ctx)
+            
             chunks = chunk_text(temp_ctx.markdown_text)
             metadata = processor.get_file_metadata(pdf_path, doc_type)
             
