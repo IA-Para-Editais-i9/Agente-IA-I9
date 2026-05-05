@@ -1,0 +1,9 @@
+pydantic>=2.5
+pytest>=8.0
+ruff>=0.4
+docling>=2.90.0
+pypdf>=6.10.2
+chromadb>=0.6
+groq>=0.9
+instructor>=1.6
+google-generativeai>=0.7
