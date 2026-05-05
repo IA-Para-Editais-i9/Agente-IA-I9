@@ -13,6 +13,8 @@ class Pipeline:
 
     def run(self, context: PipelineContext) -> PipelineContext: # recebe e retorna PipelineContext
         for filter in self.filters:
-            filter.process(context) # filtro processa a entrada
+            result = filter.process(context) # filtro processa a entrada
+            if result is not None:      # compatível com ambas as convenções
+                context = result
             
         return context
