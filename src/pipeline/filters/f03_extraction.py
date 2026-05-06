@@ -1,7 +1,189 @@
+# src/pipeline/filters/f03_extraction.py
+#
+# Squad B — Agente Extrator
+# Tarefas: B2 (Groq + Instructor) e B5 (fallback Groq → Gemini)
+# ─────────────────────────────────────────────────────────────
+
+import os                         # lê variáveis de ambiente (GROQ_API_KEY, GOOGLE_API_KEY)
+import time                       # usado no retry com espera entre tentativas
+
+from dotenv import load_dotenv    # carrega o arquivo .env para os.environ
+
+import instructor                 # wrappa clientes de LLM para retornar Pydantic
+from groq import Groq             # cliente oficial da Groq
+import google.generativeai as genai  # SDK do Google Gemini
+
 from src.pipeline.base import Filter
 from src.pipeline.context import PipelineContext
+from src.schemas.criterios_edital import CriteriosEdital
+
+# ─── Carrega .env ───────────────────────────────────────────
+# Precisa rodar antes de qualquer os.getenv()
+# Sem isso, GROQ_API_KEY e GOOGLE_API_KEY ficam None
+load_dotenv()
+
+# ─── Prompt de extração (B3) ────────────────────────────────
+# Definido aqui fora da classe para ser reutilizável nos dois métodos
+# (Groq e Gemini usam o mesmo prompt — só o cliente muda)
+EXTRACTION_PROMPT = """
+Você é um extrator de dados de editais de fomento.
+Sua tarefa é ler o texto do edital e preencher os campos estruturados solicitados.
+
+REGRAS ABSOLUTAS:
+- NÃO invente informações que não estão no texto
+- NÃO interprete — copie e organize fielmente o que está escrito
+- Se um campo não existir no edital, use None ou lista vazia []
+- Para listas, extraia cada item separadamente
+
+Texto do edital:
+{markdown_text}
+"""
+
+# ─── Constantes de configuração ─────────────────────────────
+MAX_TOKENS_GROQ = 8000     # limite seguro para o contexto do llama-3.1-8b-instant
+MAX_TOKENS_GEMINI = 12000  # Gemini Flash suporta janela maior — útil para editais longos
+GROQ_RETRY_WAIT = 61       # segundos de espera após rate limit da Groq (janela de 1 min)
 
 
+# ════════════════════════════════════════════════════════════
 class ExtractionFilter(Filter):
-    def run(self, ctx: PipelineContext) -> PipelineContext:
-        return ctx
+    """
+    Filtro responsável por:
+      1. Receber o Markdown do edital (gerado por f01_ingestion)
+      2. Tentar extração com Groq (llama-3.1-8b-instant)   ← B2
+      3. Se Groq falhar → retentar automaticamente com Gemini ← B5
+      4. Validar a saída contra o schema CriteriosEdital (Pydantic)
+      5. Salvar o dicionário resultante em ctx.criterios_edital
+    """
+
+    def __init__(self):
+        # ── Cliente Groq com Instructor ──────────────────────
+        # instructor.from_groq() "patcha" o cliente Groq para que
+        # chat.completions.create() aceite response_model=<Pydantic>
+        # e retorne diretamente uma instância do modelo, não uma string.
+        self.groq_client = instructor.from_groq(
+            Groq(api_key=os.getenv("GROQ_API_KEY"))
+            # se GROQ_API_KEY for None (não configurada), o Groq() lança AuthenticationError
+            # logo no __init__ — erro aparece cedo, antes de processar qualquer edital
+        )
+
+        # ── Configuração do Gemini ────────────────────────────
+        # O SDK do Gemini usa uma chave global (configure uma vez, usa em todo o módulo)
+        # Diferente do Groq que passa a key no construtor
+        genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
+
+        # Instructor tem suporte nativo ao Gemini via from_gemini()
+        # gemini-1.5-flash é o modelo gratuito mais capaz disponível atualmente
+        self.gemini_client = instructor.from_gemini(
+            client=genai.GenerativeModel(model_name="gemini-1.5-flash"),
+            mode=instructor.Mode.GEMINI_JSON,
+            # GEMINI_JSON instrui o Instructor a usar o modo de resposta JSON nativo
+            # do Gemini — mais confiável para schemas Pydantic do que parsing de texto livre
+        )
+
+    # ────────────────────────────────────────────────────────
+    def process(self, context: PipelineContext) -> None:
+        """
+        Ponto de entrada do pipeline.
+        Recebe ctx com markdown_text preenchido (pelo f01),
+        tenta extrair os critérios e salva em ctx.criterios_edital.
+        """
+        markdown = context.markdown_text
+
+        # Guarda coerência com o padrão do f01 (que também valida entrada antes de processar)
+        if not markdown:
+            print("\n>> [B] Erro: markdown_text está vazio. O filtro f01 falhou?")
+            return
+
+        # ── Tentativa 1: Groq ────────────────────────────────
+        try:
+            print("\n>> [B] Tentando extração com Groq...")
+            criterios = self._extract_with_groq(markdown)
+            context.criterios_edital = criterios.model_dump()
+            # model_dump() converte o objeto Pydantic em dict Python
+            # → compatível com Optional[dict] definido no PipelineContext
+            print(">> [B] Extração com Groq bem-sucedida.")
+            return  # sucesso — sai do método sem tentar Gemini
+
+        except Exception as groq_error:
+            # Captura qualquer falha do Groq:
+            # - RateLimitError: free tier esgotado (30 req/min ou 14.400/dia)
+            # - AuthenticationError: GROQ_API_KEY inválida ou ausente
+            # - APIConnectionError: sem internet ou endpoint fora do ar
+            # - ValidationError: modelo retornou JSON inválido (Instructor não conseguiu parsear)
+            print(f"\n>> [B] Groq falhou ({type(groq_error).__name__}: {groq_error})")
+            print(">> [B] Iniciando fallback para Gemini...")
+
+        # ── Tentativa 2: Gemini (fallback) ───────────────────
+        # Só chega aqui se o bloco Groq levantou qualquer Exception
+        try:
+            # Pequena pausa antes do Gemini para não sobrecarregar em caso de erro em cascata
+            # (ex: se o problema for de rede, esperar 2s pode ajudar)
+            time.sleep(2)
+
+            criterios = self._extract_with_gemini(markdown)
+            context.criterios_edital = criterios.model_dump()
+            print(">> [B] Extração com Gemini (fallback) bem-sucedida.")
+            return
+
+        except Exception as gemini_error:
+            # Se ambos falharam, levanta um erro claro para o Squad D (orquestrador)
+            # saber que o pipeline está quebrado neste ponto
+            raise RuntimeError(
+                f"[B] Extração falhou em ambos os provedores.\n"
+                f"  Groq: já logado acima\n"
+                f"  Gemini: {type(gemini_error).__name__}: {gemini_error}"
+            ) from gemini_error
+
+    # ────────────────────────────────────────────────────────
+    def _extract_with_groq(self, text: str) -> CriteriosEdital:
+        """
+        Chama a API da Groq via Instructor e retorna um objeto CriteriosEdital validado.
+
+        O Instructor intercepta a chamada, injeta instruções de schema no prompt,
+        e re-tenta internamente se o JSON vier malformado (até 3x por padrão).
+        """
+        # Trunca o texto para não ultrapassar o limite de tokens do modelo
+        # llama-3.1-8b-instant tem janela de ~8k tokens de entrada
+        safe_text = text[:MAX_TOKENS_GROQ]
+
+        result: CriteriosEdital = self.groq_client.chat.completions.create(
+            model="llama-3.1-8b-instant",
+            response_model=CriteriosEdital,
+            # response_model é a "mágica" do Instructor:
+            # ele formata o prompt para pedir JSON no schema do CriteriosEdital,
+            # valida a resposta com Pydantic e retorna a instância diretamente
+            messages=[{
+                "role": "user",
+                "content": EXTRACTION_PROMPT.format(markdown_text=safe_text)
+            }],
+            max_retries=2,
+            # max_retries do Instructor (não do Groq):
+            # se o modelo retornar JSON inválido, o Instructor reenvía o prompt
+            # com a mensagem de erro do Pydantic para o modelo se autocorrigir
+        )
+
+        return result  # tipo: CriteriosEdital (objeto Pydantic já validado)
+
+    # ────────────────────────────────────────────────────────
+    def _extract_with_gemini(self, text: str) -> CriteriosEdital:
+        """
+        Fallback: chama a API do Gemini via Instructor com o mesmo schema.
+
+        Interface idêntica ao _extract_with_groq — recebe texto, retorna CriteriosEdital.
+        Isso é intencional: o process() não precisa saber qual provedor está sendo usado.
+        """
+        # Gemini Flash suporta janela maior — aproveita para passar mais contexto
+        safe_text = text[:MAX_TOKENS_GEMINI]
+
+        result: CriteriosEdital = self.gemini_client.chat.completions.create(
+            response_model=CriteriosEdital,
+            # Gemini com Instructor funciona igual ao Groq do ponto de vista do código:
+            # response_model define o schema esperado, Instructor valida a saída
+            messages=[{
+                "role": "user",
+                "content": EXTRACTION_PROMPT.format(markdown_text=safe_text)
+            }],
+        )
+
+        return result
