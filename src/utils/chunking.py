@@ -1,5 +1,7 @@
-import tiktoken
 from typing import List
+
+import tiktoken
+
 
 def chunk_text(
     text: str,
@@ -8,24 +10,24 @@ def chunk_text(
     encoding_name: str = "cl100k_base"
 ) -> List[str]:
     # divide um texto em chunks com sobreposição.
-    
+
     if not text:
         return []
-    
+
     enc = tiktoken.get_encoding(encoding_name)
     tokens = enc.encode(text)
-    
+
     chunks = []
     start = 0
     step = chunk_size - overlap
-    
+
     while start < len(tokens):
         end = min(start + chunk_size, len(tokens))
         chunk_tokens = tokens[start:end]
         chunk_text = enc.decode(chunk_tokens)
         chunks.append(chunk_text)
         start += step
-    
+
     return chunks
 
 

@@ -1,5 +1,7 @@
 from abc import ABC, abstractmethod
+
 from src.pipeline.context import PipelineContext
+
 
 class Filter(ABC):
     @abstractmethod
