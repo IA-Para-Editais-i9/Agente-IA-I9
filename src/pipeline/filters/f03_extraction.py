@@ -26,16 +26,30 @@ load_dotenv()
 # Definido aqui fora da classe para ser reutilizável nos dois métodos
 # (Groq e Gemini usam o mesmo prompt — só o cliente muda)
 EXTRACTION_PROMPT = """
-Você é um extrator de dados de editais de fomento.
-Sua tarefa é ler o texto do edital e preencher os campos estruturados solicitados.
+You are a structured data extraction system for Brazilian public calls and edicts.
+Your sole function is to locate and literally transcribe the requested information.
 
-REGRAS ABSOLUTAS:
-- NÃO invente informações que não estão no texto
-- NÃO interprete — copie e organize fielmente o que está escrito
-- Se um campo não existir no edital, use None ou lista vazia []
-- Para listas, extraia cada item separadamente
+RULE ZERO — DO NOT INTERPRET, JUST COPY
+If the information is not explicitly in the text, return null.
 
-Texto do edital:
+RULE 1 — NAME AND AGENCY
+- nome_edital: exact title as it appears in the document.
+- orgao_fomento: entity with primary financial responsibility (e.g., EMBRAPII, Itaipu).
+
+RULE 2 — TARGET AUDIENCE
+List each type of eligible entity as a separate element. If a consortium is required, list all profiles.
+
+RULE 3 — MAXIMUM VALUE PER PROPOSAL (CRITICAL)
+STOP AND THINK: Am I extracting the value for a SINGLE PROJECT or the value of ALL PROJECTS COMBINED?
+- IGNORE the total budget of the call or global fund (e.g., R$ 20 million, R$ 90 million).
+- Look for the funding cap PER PROJECT, PER UNIT, or PER PROPOSAL.
+- If there are varied values per line of action, extract the HIGHEST absolute value possible for a single project.
+- If there is no financial transfer, return null.
+
+RULE 4 — MISSING DATA AND OUTPUT
+Return ONLY the JSON with the 4 requested fields. No markdown, no explanations.
+
+=== DOCUMENT TO ANALYZE ===
 {markdown_text}
 """
 
