@@ -1,0 +1,2 @@
+"""Pipeline package (Pipe & Filter)."""
+
