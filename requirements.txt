@@ -3,3 +3,9 @@ pytest>=8.0
 ruff>=0.4
 docling>=2.90.0
 pypdf>=6.10.2
+pymupdf>=1.24
+pillow>=10.0
+pytesseract>=0.3
+chromadb
+sentence-transformers
+tiktoken
