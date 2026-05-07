@@ -16,6 +16,7 @@ from src.pipeline.filters.f01_ingestion import IngestionFilter
 from src.pipeline.pipeline import Pipeline
 
 
+
 @dataclass
 class PdfSmokeResult:
     pdf: str

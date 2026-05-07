@@ -59,3 +59,27 @@ class ChromaManager:
             "name": collection.name,
             "count": collection.count(),
         }
+
+    def query(
+        self,
+        collection_name: str,
+        query_text: str,
+        n_results: int = 10,
+        where: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
+        """
+        Consulta uma coleção e retorna o resultado bruto do Chroma.
+
+        Args:
+            collection_name: nome da coleção (ex: 'editais', 'perfil_empresa')
+            query_text: texto de consulta
+            n_results: quantidade de resultados
+            where: filtro de metadados (opcional)
+        """
+        collection = self.get_or_create_collection(collection_name)
+        return collection.query(
+            query_texts=[query_text],
+            n_results=n_results,
+            where=where,
+            include=["documents", "metadatas", "distances", "ids"],
+        )
