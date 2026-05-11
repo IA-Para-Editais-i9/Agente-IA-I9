@@ -1,7 +1,7 @@
-from typing import List
+from typing import List  # tipagem
 
-from src.pipeline.base import Filter
-from src.pipeline.context import PipelineContext
+from src.pipeline.base import Filter  # classe dos filtros
+from src.pipeline.context import PipelineContext  # objeto que carrega os dados
 
 '''
 orquestrador do pipeline
@@ -12,8 +12,10 @@ class Pipeline:
     def __init__(self, filters: List[Filter]):
         self.filters = filters
 
-    def run(self, context: PipelineContext) -> PipelineContext:
-        for filtro in self.filters:
-            context = filtro.process(context)
+    def run(self, context: PipelineContext) -> PipelineContext: # recebe e retorna PipelineContext
+        for filter in self.filters:
+            result = filter.process(context) # filtro processa a entrada
+            if result is not None:      # compatível com ambas as convenções
+                context = result
 
         return context

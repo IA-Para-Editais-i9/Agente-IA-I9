@@ -3,7 +3,13 @@ pytest>=8.0
 ruff>=0.4
 docling>=2.90.0
 pypdf>=6.10.2
-chromadb>=0.6
+pymupdf>=1.24
+pillow>=10.0
+pytesseract>=0.3
+chromadb
+sentence-transformers
+tiktoken
+instructor>=1.5
 groq>=0.9
-instructor>=1.6
-google-generativeai>=0.7
+google-generativeai>=0.8
+python-dotenv>=1.0
