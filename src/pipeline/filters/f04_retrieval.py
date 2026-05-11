@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import logging
+
 from src.infrastructure.chroma_manager import ChromaManager
 from src.pipeline.base import Filter
 from src.pipeline.context import PipelineContext
