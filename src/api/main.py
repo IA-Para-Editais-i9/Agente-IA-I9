@@ -3,7 +3,7 @@ import time
 
 from fastapi import FastAPI
 
-# configuração do logging
+# configuração básica do logging,apenas estrutura inicial
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
