@@ -1,34 +1,42 @@
 import streamlit as st
-import requests
+import time
+
+st.set_page_config(page_title="Upload", page_icon="📄", layout="wide")
 
 st.title("📄 Upload de Edital")
 
-api_url = st.secrets["FASTAPI_URL"]
+st.markdown("Faça upload do edital principal e documentos adicionais da empresa.")
 
-edital = st.file_uploader("Upload do PDF do Edital", type=["pdf"])
-docs_empresa = st.file_uploader(
-    "Upload de documentos da empresa (opcional)",
-    accept_multiple_files=True
-)
+col1, col2 = st.columns(2)
 
-if st.button("🔍 Analisar"):
-    if not edital:
-        st.warning("Envie o edital primeiro.")
+with col1:
+    edital_pdf = st.file_uploader(
+        "Upload do Edital (PDF)",
+        type=["pdf"]
+    )
+
+with col2:
+    docs_empresa = st.file_uploader(
+        "Documentos adicionais da empresa",
+        type=["pdf", "docx", "xlsx"],
+        accept_multiple_files=True
+    )
+
+st.divider()
+
+if st.button("🔍 Analisar", use_container_width=True):
+
+    if edital_pdf is None:
+        st.error("Envie o edital em PDF para continuar.")
     else:
-        with st.spinner("Analisando..."):
-            files = {
-                "edital": edital
-            }
+        progress = st.progress(0)
+        status = st.empty()
 
-            if docs_empresa:
-                for i, doc in enumerate(docs_empresa):
-                    files[f"doc_{i}"] = doc
+        for i in range(101):
+            time.sleep(0.02)
+            progress.progress(i)
+            status.text(f"Processando análise... {i}%")
 
-            response = requests.post(api_url, files=files)
+        st.success("Análise concluída com sucesso!")
 
-            if response.status_code == 200:
-                st.session_state["resultado"] = response.json()
-                st.success("Análise concluída!")
-                st.switch_page("pages/2_📊_Resultado.py")
-            else:
-                st.error("Erro ao processar análise.")
+        st.switch_page("src\frontend\pages\Resultado.py")

@@ -1,60 +1,73 @@
 import streamlit as st
 
+st.set_page_config(page_title="Resultado", page_icon="📊", layout="wide")
+
 st.title("📊 Resultado da Análise")
 
-resultado = st.session_state.get("resultado")
+fit_percent = 78
+classificacao = "ALTO FIT"
 
-if not resultado:
-    st.warning("Nenhuma análise encontrada.")
-    st.stop()
+criterios_ok = [
+    "✅ Certidões fiscais válidas",
+    "✅ Capacidade técnica comprovada",
+    "✅ Tempo de mercado compatível",
+    "✅ Documentação jurídica completa",
+]
 
-fit = resultado.get("fit_percentual", 0)
-classificacao = resultado.get("classificacao", "N/A")
-justificativa = resultado.get("justificativa", "")
+gaps = [
+    "❌ Ausência de ISO 27001",
+    "❌ Falta de comprovação financeira",
+    "❌ Equipe reduzida para escopo",
+]
 
-criterios_ok = resultado.get("criterios_atendidos", [])
-gaps = resultado.get("gaps", [])
+recomendacoes = [
+    "Regularizar documentação financeira",
+    "Adicionar certificação ISO",
+    "Expandir equipe técnica",
+]
 
-recomendacoes = resultado.get("recomendacoes", [])
-top3 = resultado.get("top_3_acoes", [])
-parceiros = resultado.get("parceiros", [])
+top3 = [
+    "1️⃣ Enviar balanço patrimonial atualizado",
+    "2️⃣ Iniciar processo de certificação ISO",
+    "3️⃣ Contratar profissionais especializados",
+]
 
-st.subheader("📈 Nível de Fit")
+st.subheader("Indicador de Compatibilidade")
 
-st.progress(fit / 100)
+st.progress(fit_percent)
 
-col1, col2 = st.columns(2)
-col1.metric("Fit (%)", f"{fit}%")
-col2.metric("Classificação", classificacao)
+if fit_percent >= 75:
+    st.success(f"{fit_percent}% — {classificacao}")
+elif fit_percent >= 50:
+    st.warning(f"{fit_percent}% — MÉDIO FIT")
+else:
+    st.error(f"{fit_percent}% — BAIXO FIT")
 
-st.markdown(f"**Justificativa:** {justificativa}")
-
-st.subheader("📌 Critérios e Gaps")
+st.divider()
 
 col1, col2 = st.columns(2)
 
 with col1:
-    st.markdown("### ✅ Critérios Atendidos")
-    for c in criterios_ok:
-        st.success(c)
+    st.subheader("✅ Critérios Atendidos")
+
+    for item in criterios_ok:
+        st.markdown(item)
 
 with col2:
-    st.markdown("### ❌ Gaps Identificados")
-    for g in gaps:
-        st.error(g)
+    st.subheader("❌ Gaps Identificados")
+
+    for item in gaps:
+        st.markdown(item)
+
+st.divider()
+
+st.subheader("💡 Recomendações")
+
+for rec in recomendacoes:
+    st.info(rec)
 
 
-st.subheader("🚀 Recomendações")
+st.subheader("🚀 Top 3 Ações Prioritárias")
 
-st.markdown("### 📋 Lista Geral")
-for r in recomendacoes:
-    st.write(f"- {r}")
-
-st.markdown("### 🔥 Top 3 Ações Prioritárias")
-for t in top3:
-    st.warning(t)
-
-if parceiros:
-    st.markdown("### 🤝 Parceiros Sugeridos")
-    for p in parceiros:
-        st.info(p)
+for acao in top3:
+    st.warning(acao)

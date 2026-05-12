@@ -1,21 +1,22 @@
 import streamlit as st
 
 st.set_page_config(
-    page_title="Análise de Editais",
+    page_title="Analisador de Editais",
+    page_icon="📄",
     layout="wide"
 )
 
-st.title("📊 Plataforma de Análise de Fit para Editais")
+st.title("📄 Plataforma Inteligente de Análise de Editais")
 
 st.markdown("""
-Bem-vindo!
+Bem-vindo ao sistema de análise de aderência entre empresas e editais.
 
-Esta ferramenta analisa editais e compara com os documentos da sua empresa,
-indicando o nível de aderência (fit).
-
-### 🚀 Como usar:
-1. Vá para a aba **Upload**
-2. Envie o edital e documentos
-3. Clique em **Analisar**
-4. Veja o resultado na aba **Resultado**
+### Funcionalidades:
+- Upload de edital em PDF
+- Upload de documentos complementares
+- Análise de fit
+- Identificação de gaps
+- Recomendações automáticas
 """)
+
+st.info("Utilize o menu lateral para acessar as páginas.")
