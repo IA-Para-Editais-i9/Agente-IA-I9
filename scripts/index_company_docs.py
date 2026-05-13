@@ -35,7 +35,7 @@ def index_company_documents():
         for pdf_path in pdf_files:
             # processa cada PDF
             '''
-            temp_ctx = PipelineContext(pdf_path=pdf_path)  
+            temp_ctx = PipelineContext(pdf_path=pdf_path)
             pipeline = Pipeline([IngestionFilter()])
             pipeline.run(temp_ctx)
             '''

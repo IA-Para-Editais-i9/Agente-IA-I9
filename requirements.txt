@@ -9,3 +9,7 @@ pytesseract>=0.3
 chromadb
 sentence-transformers
 tiktoken
+instructor>=1.5
+groq>=0.9
+google-generativeai>=0.8
+python-dotenv>=1.0
