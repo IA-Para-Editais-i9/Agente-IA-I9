@@ -2,22 +2,36 @@
 
 > **Leitura obrigatória antes de fazer o primeiro commit.**  
 > Este documento explica como o repositório está organizado, como os branches funcionam, quais são as regras de Pull Request e como cada squad deve trabalhar. Se você tiver dúvidas após a leitura, mande uma mensagem para o representante do projeto.
--
 
 ## Sumário
 
-1. [Por que temos essas regras?](#1-por-que-temos-essas-regras)
-2. [O padrão de arquitetura: Pipe & Filter](#2-o-padrão-de-arquitetura-pipe--filter)
-3. [Estrutura de pastas (Filetree)](#3-estrutura-de-pastas-filetree)
-4. [Arquivos que nunca vão para o git](#4-arquivos-que-nunca-vão-para-o-git)
-5. [Estratégia de branches](#5-estratégia-de-branches)
-6. [Regras de proteção por branch](#6-regras-de-proteção-por-branch)
-7. [Como abrir um Pull Request](#7-como-abrir-um-pull-request)
-8. [Convenção de commits](#8-convenção-de-commits)
-9. [CODEOWNERS — quem revisa o quê](#9-codeowners--quem-revisa-o-quê)
-10. [CI — o que roda automaticamente](#10-ci--o-que-roda-automaticamente)
-11. [Fluxo completo de uma tarefa](#11-fluxo-completo-de-uma-tarefa)
-12. [Dúvidas frequentes](#12-dúvidas-frequentes)
+- [Guia de Contribuição — Agente de IA para Editais](#guia-de-contribuição--agente-de-ia-para-editais)
+  - [Sumário](#sumário)
+  - [1. Por que temos essas regras?](#1-por-que-temos-essas-regras)
+  - [2. O padrão de arquitetura: Pipe \& Filter](#2-o-padrão-de-arquitetura-pipe--filter)
+    - [O contrato central: `PipelineContext`](#o-contrato-central-pipelinecontext)
+  - [3. Estrutura de pastas (Filetree)](#3-estrutura-de-pastas-filetree)
+    - [Responsabilidade por pasta](#responsabilidade-por-pasta)
+  - [4. Arquivos que nunca vão para o git](#4-arquivos-que-nunca-vão-para-o-git)
+  - [5. Estratégia de branches](#5-estratégia-de-branches)
+    - [Os 4 níveis explicados](#os-4-níveis-explicados)
+    - [Convenção de nomes para branches de feature](#convenção-de-nomes-para-branches-de-feature)
+  - [6. Regras de proteção por branch](#6-regras-de-proteção-por-branch)
+    - [`main` — protegida, nível máximo](#main--protegida-nível-máximo)
+    - [`develop` — protegida, nível médio](#develop--protegida-nível-médio)
+    - [`squad/*` — semi-protegida](#squad--semi-protegida)
+    - [`feat/*`, `fix/*`, `chore/*` — livre](#feat-fix-chore--livre)
+    - [Como configurar no GitHub](#como-configurar-no-github)
+  - [7. Como abrir um Pull Request](#7-como-abrir-um-pull-request)
+    - [O fluxo padrão de uma tarefa](#o-fluxo-padrão-de-uma-tarefa)
+    - [Template obrigatório de PR](#template-obrigatório-de-pr)
+  - [8. Convenção de commits](#8-convenção-de-commits)
+  - [9. CODEOWNERS — quem revisa o quê](#9-codeowners--quem-revisa-o-quê)
+    - [Por que `base.py` e `context.py` têm revisão de todos?](#por-que-basepy-e-contextpy-têm-revisão-de-todos)
+    - [Como criar os times no GitHub](#como-criar-os-times-no-github)
+  - [10. CI — o que roda automaticamente](#10-ci--o-que-roda-automaticamente)
+  - [11. Fluxo completo de uma tarefa](#11-fluxo-completo-de-uma-tarefa)
+  - [12. Dúvidas frequentes](#12-dúvidas-frequentes)
 
 ---
 

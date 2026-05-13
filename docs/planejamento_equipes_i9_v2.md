@@ -13,7 +13,7 @@ O projeto é dividido em **5 squads**, cada squad responsável por uma camada do
 | **B — Schemas & Extração** | Pydantic/Instructor + Agente 1 | — |
 | **C — Inferência & Fit** | Agente 2 + RAG + % fit | — |
 | **D — Orquestração & Backend** | CrewAI + FastAPI | — |
-| **E — Frontend & Monitoramento** | Streamlit + Langfuse | — |
+| **E — Frontend & Monitoramento** | Streamlit |
 
 ---
 
@@ -99,8 +99,8 @@ O projeto é dividido em **5 squads**, cada squad responsável por uma camada do
 | E2 | Criar painel de resultado no Streamlit | Tela de resultado com: indicador visual do % de fit (gauge ou barra de progresso colorida), classificação em destaque ("Alto / Médio / Baixo"), e justificativa do percentual em texto |
 | E3 | Criar visualização de critérios atendidos vs. gaps | No painel de resultado: duas colunas lado a lado — ✅ Critérios Atendidos e ❌ Gaps Identificados — exibindo as listas retornadas pelo Agente 2 |
 | E4 | Criar visualização de recomendações e top 3 ações | Seção no painel de resultado com: lista de recomendações de adequação, destaque das "Top 3 Ações Prioritárias" para aumentar o fit, seção de parceiros sugeridos quando necessário |
-| E5 | Configurar Langfuse para monitoramento | Integrar Langfuse (self-hosted via Docker Compose ou conta gratuita) para registrar todas as chamadas LLM: prompt enviado, resposta recebida, tokens consumidos, latência, modelo usado |
-| E6 | Criar dashboard de monitoramento no Langfuse | Configurar traces para as duas chamadas do pipeline (Agente 1 e Agente 2) com as etiquetas corretas. Criar visualização que mostre: tempo médio por análise, taxa de erro, consumo de tokens por sessão |
+| E5 | Logging de tokens | VISUALIZAÇÃO NO FRONT DE QUAL EDITAL FOI PROCESSADO, QUANTOS TOKENS GASTOU E QUANTO TEMPO DEMOROU
+| E6 | Documentação | Documentação e Demonstração de uso pro parceiro
 
 ---
 
@@ -126,7 +126,6 @@ O projeto é dividido em **5 squads**, cada squad responsável por uma camada do
 ### ✅ Sprint 4 — Backend & Frontend
 - O endpoint `POST /analisar-edital` recebe um PDF e devolve o JSON final sem erros
 - A interface Streamlit exibe o resultado completo (% fit, gaps, recomendações) sem necessidade de explicação verbal
-- Langfuse está registrando 100% das chamadas LLM com latência e tokens
 
 ### ✅ Sprint 5 — Entrega
 - O pipeline completo roda em menos de 3 minutos para um edital de 80 páginas
