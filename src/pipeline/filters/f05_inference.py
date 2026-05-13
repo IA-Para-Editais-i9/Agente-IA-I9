@@ -156,6 +156,10 @@ def classify_fit(percentual: float) -> str:
 
 # ════════════════════════════════════════════════════════════
 class InferenceFilter(Filter):
+    def run(self, ctx: PipelineContext) -> PipelineContext:
+        self.process(ctx)
+        return ctx
+
     """
     Filtro responsável por:
       1. Receber ctx.criterios_edital (do f03) e ctx.company_chunks (do f04)

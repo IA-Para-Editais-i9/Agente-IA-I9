@@ -13,6 +13,10 @@ DISTANCIA_MAX = 1.2  # cos distance: 0=igual, 2=oposto (limiar empírico)
 
 
 class RetrievalFilter(Filter):
+    def run(self, ctx: PipelineContext) -> PipelineContext:
+        self.process(ctx)
+        return ctx
+
     """
     Squad C — C3/C5
 
