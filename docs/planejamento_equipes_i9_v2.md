@@ -9,7 +9,7 @@ O projeto é dividido em **5 squads**, cada squad responsável por uma camada do
 
 | Squad | Camada do Pipeline | Integrantes |
 |---|---|---|
-| **A — Ingestão & Memória** | Docling + ChromaDB | — |
+| **A — Ingestão & Memória** | PyMuPDF + ChromaDB | — |
 | **B — Schemas & Extração** | Pydantic/Instructor + Agente 1 | — |
 | **C — Inferência & Fit** | Agente 2 + RAG + % fit | — |
 | **D — Orquestração & Backend** | CrewAI + FastAPI | — |
@@ -35,7 +35,7 @@ O projeto é dividido em **5 squads**, cada squad responsável por uma camada do
 
 | # | Tarefa | Descrição |
 |---|---|---|
-| A1 | Configurar Docling e testar com editais reais | Instalar Docling, rodar em 3 editais reais da i9+ (PDFs de 60-80 pág) e verificar se tabelas e seções são preservadas corretamente. Registrar edge cases (PDFs escaneados, colunas duplas, etc.) |
+| A1 | Configurar PyMuPDF e testar com editais reais | Configurar PyMuPDF e Tesseract OCR, rodar em 3 editais reais da i9+ (PDFs de 60-80 pág) e verificar se tabelas e seções são preservadas corretamente. Registrar edge cases (PDFs escaneados, colunas duplas, etc.) |
 | A2 | Criar módulo de ingestão: PDF → Markdown | Implementar função que recebe qualquer PDF e retorna o Markdown estruturado. Deve funcionar tanto para editais quanto para documentos internos da empresa |
 | A3 | Configurar ChromaDB e estrutura de coleções | Criar duas coleções separadas: `editais` e `perfil_empresa`. Definir metadados de cada documento (tipo, data, fonte) |
 | A4 | Criar pipeline de indexação dos documentos internos da i9+ | Usar o módulo A2 para converter todos os documentos da empresa (portfólio, contratos, certificações) em chunks e indexar no ChromaDB. Executado uma única vez na inicialização |
@@ -65,7 +65,7 @@ O projeto é dividido em **5 squads**, cada squad responsável por uma camada do
 
 | # | Tarefa | Descrição |
 |---|---|---|
-| C1 | Definir schema Pydantic `ResultadoFit` | Mapear todos os campos da saída do Agente 2: percentual_fit (float 0-100), classificação ("Alto"/"Médio"/"Baixo"/"Inviável"), critérios_atendidos (lista), gaps_identificados (lista), recomendações_adequação (lista), necessidade_parceria_ICT (bool), sugestão_parceiros (lista), justificativa_percentual (texto), ações_prioritárias (top 3) |
+| C1 | Definir schema Pydantic `ResultadoFit` | Mapear todos os campos da saída do Agente 2: percentual_fit (float 0-100), classificação ("Alto"/"Médio"/"Baixo"/"Inviável"), critérios_atendidos (lista), gaps_identificados (lista), recomendações_adequação (lista), necessidade_parceria_ICT (bool), sugestão_parceiros (lista), justificativa_percentual (texto), ações_prioritárias (top 3), e os 4 sub-scores (elegibilidade, alinhamento, capacidade e experiência) |
 | C2 | Implementar a lógica de pesos do % de fit | O % final é composto por: 40% elegibilidade técnica (CNAE, porte, setor) + 30% alinhamento temático (economia circular, baterias, sustentabilidade) + 20% capacidade documental e financeira + 10% experiência prévia com editais similares. Implementar essa lógica de forma que o prompt instrua o modelo a calcular cada sub-score separadamente antes de compor o total |
 | C3 | Implementar a busca RAG no ChromaDB | Dado o resumo_objetivo do edital (campo extraído pelo Agente 1), buscar no ChromaDB os 10 trechos mais relevantes do perfil da empresa. Esses trechos são o "contexto da empresa" que o Agente 2 recebe |
 | C4 | Escrever e iterar o prompt de inferência (Agente 2) | Criar o prompt que instrui o modelo a: (a) analisar fit com base nos pesos definidos, (b) ser honesto sobre gaps, (c) sugerir "pivotagens" reais e específicas para a i9+, (d) identificar parceiros concretos (ex: UTFPR, SENAI-PR) quando necessário. Testar com pelo menos 5 editais |
@@ -85,7 +85,7 @@ O projeto é dividido em **5 squads**, cada squad responsável por uma camada do
 | D3 | Criar endpoint FastAPI: `POST /analisar-edital` | Endpoint que recebe o PDF do edital como upload, roda o pipeline completo e retorna o JSON com o `ResultadoFit`. Incluir validação do arquivo (só aceita PDF, máx 100MB) |
 | D4 | Criar endpoint FastAPI: `POST /indexar-documento` | Endpoint que recebe documentos da empresa (PDF/DOCX) e os adiciona ao ChromaDB. Retorna confirmação e número de chunks indexados |
 | D5 | Implementar controle de uso do free tier | Criar um contador de requisições por sessão que alerta quando o limite do Groq (30 req/min) está próximo. Implementar delay automático entre requisições para evitar rate limit errors. Documentar limites reais testados |
-| D6 | Teste de ponta a ponta do pipeline | Rodar o pipeline completo (Docling → ChromaDB → Agente 1 → Agente 2 → JSON final) com um edital real, medir tempo total de execução, verificar que todas as etapas funcionam em sequência e que o JSON final é válido |
+| D6 | Teste de ponta a ponta do pipeline | Rodar o pipeline completo (PyMuPDF → ChromaDB → Agente 1 → Agente 2 → JSON final) com um edital real, medir tempo total de execução, verificar que todas as etapas funcionam em sequência e que o JSON final é válido |
 
 ---
 
@@ -155,7 +155,7 @@ SPRINT 0        SPRINT 1        SPRINT 2        SPRINT 3        SPRINT 4        
 O pipeline tem dependências em cascata. A ordem de entrega importa:
 
 ```
-Squad A (Docling + ChromaDB) → Squad B pode começar B3/B4 em paralelo
+Squad A (PyMuPDF + ChromaDB) → Squad B pode começar B3/B4 em paralelo
 Squad B (Agente Extrator)    → Squad C pode começar só depois de B1/B2 prontos
 Squad C (Agente Inferidor)   → Squad D pode orquestrar só depois de C1/C2 prontos
 Squads D + E (Backend/Front) → Podem ser desenvolvidos em paralelo entre si
@@ -182,7 +182,7 @@ Mesmo respeitando as dependências acima, cada squad tem tarefas que **não bloq
 | Recurso | Limite | Impacto Real | Mitigação |
 |---|---|---|---|
 | **Groq** | 30 req/min · 14.400 req/dia | Cada análise usa 2 chamadas (1 por agente). Limite real: ~7.200 editais/dia | Mais que suficiente para uso da i9+. Tarefa D5 implementa delay automático |
-| **Groq (tokens)** | 6.000 tokens/min (llama 8B) | Editais longos podem precisar de chunking extra | Docling divide o edital em seções; cada seção é processada separadamente se necessário |
+| **Groq (tokens)** | 6.000 tokens/min (llama 8B) | Editais longos podem precisar de chunking extra | O módulo de extração divide o edital em seções; cada seção é processada separadamente se necessário |
 | **Google Gemini** | 15 req/min · 1.500 req/dia | Fallback apenas. Se Groq cair, suporta até 750 análises/dia | Tarefa B5 implementa fallback automático |
 | **Streamlit Community Cloud** | 1 app gratuito · sempre ligado | Sem limite de usuários simultâneos | Suficiente para uso interno da i9+ |
 | **ChromaDB** | Sem limite (roda local) | Apenas limite de disco da máquina | Docs da empresa são poucos KB; sem problema |

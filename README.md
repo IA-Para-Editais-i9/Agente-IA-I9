@@ -111,7 +111,7 @@ Agente-IA-i9/
 │   │   ├── context.py                    ← PipelineContext, o "pipe"  [CORE]
 │   │   ├── pipeline.py                   ← orquestrador (Squad D)
 │   │   └── filters/
-│   │       ├── f01_ingestion.py          ← Squad A · PDF → Markdown (Docling)
+│   │       ├── f01_ingestion.py          ← Squad A · PDF → Markdown (PyMuPDF)
 │   │       ├── f02_indexing.py           ← Squad A · Markdown → ChromaDB
 │   │       ├── f03_extraction.py         ← Squad B · Markdown → CriteriosEdital
 │   │       ├── f04_retrieval.py          ← Squad C · Query → Company chunks (RAG)
@@ -222,7 +222,7 @@ O repositório usa **4 níveis de branch**. Cada nível tem um propósito difere
 main
 └── develop
       ├── squad/A
-      │     ├── feat/A-A1-docling-setup
+      │     ├── feat/A-A1-pymupdf-setup
       │     ├── feat/A-A2-ingestion-module
       │     └── fix/A-A1-scanned-pdf-edge-case
       ├── squad/B
@@ -249,7 +249,7 @@ main
 feat/<squad>-<id-da-tarefa>-<descricao-curta>
 
 Exemplos:
-  feat/A-A1-docling-setup
+  feat/A-A1-pymupdf-setup
   feat/A-A3-chromadb-collections
   feat/B-B1-criterios-schema
   feat/C-C3-rag-chromadb
@@ -391,7 +391,7 @@ Use o padrão **Conventional Commits**. O formato é:
 O `<escopo>` é o ID da tarefa do backlog (`A1`, `B3`, `D6`, `S1`, etc.).
 
 ```
-feat(A1): configurar Docling e testar com editais reais
+feat(A1): configurar PyMuPDF e testar com editais reais
 feat(B2): integrar Instructor com Groq API usando llama-3.1-8b
 fix(B3): corrigir extração de tabelas em PDFs escaneados
 chore(S1): criar estrutura de pastas e branches do repositório

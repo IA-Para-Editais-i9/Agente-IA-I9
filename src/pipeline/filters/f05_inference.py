@@ -15,10 +15,26 @@ from dotenv import load_dotenv
 import instructor
 from groq import Groq
 import google.generativeai as genai
+from pydantic import BaseModel, Field
 
 from src.pipeline.base import Filter
 from src.pipeline.context import PipelineContext
 from src.schemas.resultado_fit import ResultadoFit
+
+
+class LLMInferenceOutput(BaseModel):
+    sub_elegibilidade_tecnica: float = Field(..., ge=0, le=100)
+    sub_alinhamento_tematico: float = Field(..., ge=0, le=100)
+    sub_capacidade_documental: float = Field(..., ge=0, le=100)
+    sub_experiencia_previa: float = Field(..., ge=0, le=100)
+    criterios_atendidos: list[str] = Field(default_factory=list)
+    gaps_identificados: list[str] = Field(default_factory=list)
+    recomendacoes_adequacao: list[str] = Field(default_factory=list)
+    necessidade_parceria_ict: bool = Field(...)
+    sugestao_parceiros: list[str] = Field(default_factory=list)
+    justificativa_percentual: str = Field(...)
+    acoes_prioritarias: list[str] = Field(...)
+
 
 # ─── Carrega .env ───────────────────────────────────────────
 load_dotenv()
@@ -52,37 +68,27 @@ atende aos CRITÉRIOS DO EDITAL e produzir um resultado de fit (adequação).
 
 PASSO 1 — Calcule cada sub-score de 0 a 100:
 
-1. elegibilidade_tecnica (peso 40%):
+1. sub_elegibilidade_tecnica (peso 40%):
    Compare os requisitos_tecnicos e setores_elegiveis do edital com as
    capacidades da empresa. Considere certificações, infraestrutura e TRL.
    Se não houver informação da empresa, atribua 20.
 
-2. alinhamento_tematico (peso 30%):
+2. sub_alinhamento_tematico (peso 30%):
    Compare palavras_chave_tematicas e resumo_objetivo do edital com os
    projetos e áreas de atuação da empresa. Avalie sobreposição temática.
    Se não houver informação da empresa, atribua 20.
 
-3. capacidade_documental_financeira (peso 20%):
+3. sub_capacidade_documental (peso 20%):
    Verifique se a empresa parece atender porte_empresa, documentos_exigidos
    e valor_maximo do edital. Considere contratos anteriores como evidência.
    Se não houver informação da empresa, atribua 20.
 
-4. experiencia_previa (peso 10%):
+4. sub_experiencia_previa (peso 10%):
    Avalie se a empresa tem histórico de projetos semelhantes, contratos
    com órgãos públicos, ou participação em editais similares.
    Se não houver informação da empresa, atribua 10.
 
-PASSO 2 — Calcule o percentual_fit total:
-  percentual_fit = (elegibilidade_tecnica × 0.40) + (alinhamento_tematico × 0.30)
-                 + (capacidade_documental_financeira × 0.20) + (experiencia_previa × 0.10)
-
-PASSO 3 — Determine a classificacao:
-  - "Alto"     se percentual_fit >= 70
-  - "Médio"    se percentual_fit >= 45
-  - "Baixo"    se percentual_fit >= 20
-  - "Inviável" se percentual_fit < 20
-
-PASSO 4 — Preencha os campos restantes:
+PASSO 2 — Preencha os campos restantes:
   - criterios_atendidos: lista dos critérios do edital que a empresa atende.
   - gaps_identificados: lista das lacunas ou requisitos não atendidos.
   - recomendacoes_adequacao: ações sugeridas para melhorar a aderência.
@@ -90,16 +96,15 @@ PASSO 4 — Preencha os campos restantes:
     não possui; caso contrário, copie o valor do campo do edital.
   - sugestao_parceiros: se necessidade_parceria_ict for true, sugira tipos
     de parceiros (ex: "universidade com laboratório de IA").
-  - justificativa_percentual: explique como chegou ao percentual, mencionando
+  - justificativa_percentual: explique as estimativas, mencionando
     cada sub-score e a evidência (ou falta dela).
   - acoes_prioritarias: até 3 ações mais urgentes para viabilizar a candidatura.
 
+Não calcule o percentual_fit total nem a classificacao. Isso será feito automaticamente pelo sistema.
+
 ═══ FORMATO DE SAÍDA ═══
 Retorne APENAS JSON válido, sem markdown, sem explicações fora do JSON.
-O JSON deve conter exatamente estes campos:
-  percentual_fit, classificacao, criterios_atendidos, gaps_identificados,
-  recomendacoes_adequacao, necessidade_parceria_ict, sugestao_parceiros,
-  justificativa_percentual, acoes_prioritarias
+O JSON deve conter os exatos campos solicitados pelas instruções do formato (sub-scores e os demais campos textuais listados no PASSO 2).
 """
 
 # ─── Constantes ─────────────────────────────────────────────
@@ -223,8 +228,8 @@ class InferenceFilter(Filter):
         if self.groq_client is not None:
             try:
                 print("\n>> [C] Tentando inferência com Groq...")
-                resultado = self._infer_with_groq(prompt_text)
-                ctx.resultado_fit = resultado.model_dump()
+                resultado_llm = self._infer_with_groq(prompt_text)
+                self._process_llm_result(ctx, resultado_llm)
                 print(">> [C] Inferência com Groq bem-sucedida.")
                 return
             except Exception as groq_error:
@@ -243,8 +248,8 @@ class InferenceFilter(Filter):
             try:
                 time.sleep(2)
                 print("\n>> [C] Tentando inferência com Gemini...")
-                resultado = self._infer_with_gemini(prompt_text)
-                ctx.resultado_fit = resultado.model_dump()
+                resultado_llm = self._infer_with_gemini(prompt_text)
+                self._process_llm_result(ctx, resultado_llm)
                 print(">> [C] Inferência com Gemini bem-sucedida.")
                 return
             except Exception as gemini_error:
@@ -260,26 +265,43 @@ class InferenceFilter(Filter):
             "Defina GROQ_API_KEY e/ou GOOGLE_API_KEY no .env"
         )
 
+    def _process_llm_result(self, ctx: PipelineContext, resultado_llm: LLMInferenceOutput) -> None:
+        sub_scores = {
+            "elegibilidade_tecnica": resultado_llm.sub_elegibilidade_tecnica,
+            "alinhamento_tematico": resultado_llm.sub_alinhamento_tematico,
+            "capacidade_documental_financeira": resultado_llm.sub_capacidade_documental,
+            "experiencia_previa": resultado_llm.sub_experiencia_previa,
+        }
+        percentual = compute_weighted_score(sub_scores)
+        classificacao = classify_fit(percentual)
+
+        resultado_final = ResultadoFit(
+            percentual_fit=percentual,
+            classificacao=classificacao,
+            **resultado_llm.model_dump()
+        )
+        ctx.resultado_fit = resultado_final.model_dump()
+
     # ────────────────────────────────────────────────────────
-    def _infer_with_groq(self, prompt_text: str) -> ResultadoFit:
-        """Chama Groq via Instructor e retorna ResultadoFit validado."""
+    def _infer_with_groq(self, prompt_text: str) -> LLMInferenceOutput:
+        """Chama Groq via Instructor e retorna LLMInferenceOutput validado."""
         safe_text = prompt_text[:MAX_TOKENS_GROQ]
 
-        result: ResultadoFit = self.groq_client.chat.completions.create(
+        result: LLMInferenceOutput = self.groq_client.chat.completions.create(
             model="llama-3.1-8b-instant",
-            response_model=ResultadoFit,
+            response_model=LLMInferenceOutput,
             messages=[{"role": "user", "content": safe_text}],
             max_retries=2,
         )
         return result
 
     # ────────────────────────────────────────────────────────
-    def _infer_with_gemini(self, prompt_text: str) -> ResultadoFit:
+    def _infer_with_gemini(self, prompt_text: str) -> LLMInferenceOutput:
         """Fallback: chama Gemini via Instructor com o mesmo schema."""
         safe_text = prompt_text[:MAX_TOKENS_GEMINI]
 
-        result: ResultadoFit = self.gemini_client.chat.completions.create(
-            response_model=ResultadoFit,
+        result: LLMInferenceOutput = self.gemini_client.chat.completions.create(
+            response_model=LLMInferenceOutput,
             messages=[{"role": "user", "content": safe_text}],
         )
         return result

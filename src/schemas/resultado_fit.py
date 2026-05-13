@@ -14,6 +14,30 @@ class ResultadoFit(BaseModel):
         ...,
         description="Classificação derivada do percentual_fit",
     )
+    sub_elegibilidade_tecnica: float = Field(
+        0.0,
+        ge=0.0,
+        le=100.0,
+        description="Score técnico de 0 a 100",
+    )
+    sub_alinhamento_tematico: float = Field(
+        0.0,
+        ge=0.0,
+        le=100.0,
+        description="Score temático de 0 a 100",
+    )
+    sub_capacidade_documental: float = Field(
+        0.0,
+        ge=0.0,
+        le=100.0,
+        description="Score documental/financeiro de 0 a 100",
+    )
+    sub_experiencia_previa: float = Field(
+        0.0,
+        ge=0.0,
+        le=100.0,
+        description="Score de experiência prévia de 0 a 100",
+    )
     criterios_atendidos: list[str] = Field(
         default_factory=list,
         description="Critérios do edital que a empresa já atende",
