@@ -94,6 +94,7 @@ DEFAULT_STATE = {
     "edital_nome": None,
     "docs_empresa_nomes": [],
     "resultado_fit": None,
+    "historico": [],
 }
 for chave, valor in DEFAULT_STATE.items():
     if chave not in st.session_state:
