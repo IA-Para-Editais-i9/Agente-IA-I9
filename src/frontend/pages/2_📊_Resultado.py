@@ -94,6 +94,30 @@ def render_metric_cards(resultado):
 
 
 # ─────────────────────────────────────────────────────────────────────────────
+# Justificativa do percentual
+# ─────────────────────────────────────────────────────────────────────────────
+def render_justificativa(resultado):
+    texto = resultado.get(
+        "justificativa_percentual",
+        resultado.get("resumo_executivo", ""),
+    )
+    if not texto:
+        return
+    st.subheader("Justificativa do percentual")
+    st.markdown(
+        f"""
+        <div style="background:#F8FAFC; border-left:6px solid #0055FF;
+                    padding:18px 20px; border-radius:10px;
+                    color:#1f2937; line-height:1.55; font-size:1rem;
+                    margin-top:6px;">
+            {texto}
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+# ─────────────────────────────────────────────────────────────────────────────
 # Empty state — quando o usuario acessa direto sem ter feito upload
 # ─────────────────────────────────────────────────────────────────────────────
 def render_empty_state():
@@ -130,6 +154,7 @@ def main():
         render_gauge(resultado.get("percentual", 0))
     with col_class:
         render_classificacao(resultado.get("classificacao", "—"))
+    render_justificativa(resultado)
 
 
 main()
