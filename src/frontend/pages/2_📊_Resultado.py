@@ -48,6 +48,52 @@ def render_gauge(percentual):
 
 
 # ─────────────────────────────────────────────────────────────────────────────
+# Classificacao em destaque + metric cards
+# ─────────────────────────────────────────────────────────────────────────────
+CLASSIFICACAO_CORES = {
+    "Alto": "#27ae60",
+    "Médio": "#f1c40f",
+    "Medio": "#f1c40f",
+    "Baixo": "#f39c12",
+    "Inviável": "#e74c3c",
+    "Inviavel": "#e74c3c",
+}
+
+
+def render_classificacao(classificacao):
+    cor = CLASSIFICACAO_CORES.get(classificacao, "#0055FF")
+    st.markdown(
+        f"""
+        <div style="background:{cor}; padding:24px; border-radius:16px;
+                    text-align:center; color:white;
+                    box-shadow:0 8px 20px rgba(0,0,0,0.12); margin-bottom:8px;">
+            <div style="font-size:0.95rem; font-weight:700;
+                        text-transform:uppercase; letter-spacing:1px; opacity:0.85;">
+                Classificacao
+            </div>
+            <div style="font-size:2.6rem; font-weight:900; margin-top:6px;">
+                {classificacao.upper()}
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def render_metric_cards(resultado):
+    col1, col2, col3, col4 = st.columns(4)
+    with col1:
+        st.metric("Edital", resultado.get("edital_titulo", "—"))
+    with col2:
+        st.metric("Orgao", resultado.get("orgao", "—"))
+    with col3:
+        percentual = resultado.get("percentual", 0)
+        st.metric("Percentual de Fit", f"{percentual}%")
+    with col4:
+        st.metric("Classificacao", resultado.get("classificacao", "—"))
+
+
+# ─────────────────────────────────────────────────────────────────────────────
 # Empty state — quando o usuario acessa direto sem ter feito upload
 # ─────────────────────────────────────────────────────────────────────────────
 def render_empty_state():
@@ -78,7 +124,12 @@ def main():
     if not resultado:
         render_empty_state()
     render_header(resultado)
-    render_gauge(resultado.get("percentual", 0))
+    render_metric_cards(resultado)
+    col_gauge, col_class = st.columns([1.4, 1])
+    with col_gauge:
+        render_gauge(resultado.get("percentual", 0))
+    with col_class:
+        render_classificacao(resultado.get("classificacao", "—"))
 
 
 main()
