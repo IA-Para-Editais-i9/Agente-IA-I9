@@ -247,6 +247,26 @@ def render_tabs_placeholders(resultado):
 
 
 # ─────────────────────────────────────────────────────────────────────────────
+# Botoes de navegacao no rodape
+# ─────────────────────────────────────────────────────────────────────────────
+def render_navigation():
+    st.divider()
+    col_voltar, col_nova = st.columns(2)
+    with col_voltar:
+        if st.button("← Voltar ao Upload", use_container_width=True):
+            st.switch_page("pages/1_📄_Upload.py")
+    with col_nova:
+        if st.button(
+            "🔄 Nova Analise",
+            type="primary",
+            use_container_width=True,
+        ):
+            st.session_state["analise_concluida"] = False
+            st.session_state["resultado_fit"] = None
+            st.switch_page("pages/1_📄_Upload.py")
+
+
+# ─────────────────────────────────────────────────────────────────────────────
 # Empty state — quando o usuario acessa direto sem ter feito upload
 # ─────────────────────────────────────────────────────────────────────────────
 def render_empty_state():
@@ -286,6 +306,7 @@ def main():
         render_classificacao(resultado.get("classificacao", "—"))
     render_justificativa(resultado)
     render_tabs_placeholders(resultado)
+    render_navigation()
 
 
 main()
