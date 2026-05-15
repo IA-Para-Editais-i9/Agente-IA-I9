@@ -3,6 +3,100 @@ import streamlit as st
 
 
 # ─────────────────────────────────────────────────────────────────────────────
+# Identidade visual i9+ — coerente com app.py e 1_📄_Upload.py da E1
+# ─────────────────────────────────────────────────────────────────────────────
+st.markdown(
+    """
+<style>
+    #MainMenu {visibility: hidden;} footer {visibility: hidden;} header {visibility: hidden;}
+
+    .stApp {
+        background-color: #F8FAFC;
+        background-image:
+            radial-gradient(at 10% 10%, rgba(0, 85, 255, 0.08) 0px, transparent 50%),
+            radial-gradient(at 90% 10%, rgba(230, 0, 73, 0.05) 0px, transparent 50%);
+        background-attachment: fixed;
+    }
+
+    h1 {
+        background: linear-gradient(to right, #0A142F 0%, #0055FF 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-weight: 900 !important;
+        font-size: 2.8rem !important;
+        margin-bottom: 0px !important;
+    }
+
+    .linha-logo {
+        height: 6px; width: 100px;
+        background: linear-gradient(to right, #E60049 0%, #0055FF 100%);
+        border-radius: 4px; margin-top: 12px; margin-bottom: 24px;
+        box-shadow: 0 4px 15px rgba(230, 0, 73, 0.4);
+    }
+
+    [data-testid="stSidebar"] {
+        background-color: #050B14 !important;
+        border-right: 2px solid rgba(0, 85, 255, 0.3);
+    }
+    [data-testid="stSidebarNav"] span, [data-testid="stSidebarNav"] svg {
+        color: #FFFFFF !important;
+        font-weight: 600;
+    }
+    [data-testid="stSidebar"] p, [data-testid="stSidebar"] div, [data-testid="stSidebar"] h2 {
+        color: #F8FAFC !important;
+    }
+    [data-testid="stSidebar"] button {
+        background-color: #0055FF !important;
+        color: #FFFFFF !important;
+        border: none !important;
+        font-weight: bold;
+        transition: all 0.3s ease;
+    }
+    [data-testid="stSidebar"] button:hover {
+        background-color: #E60049 !important;
+        transform: scale(1.02);
+    }
+
+    [data-testid="stMetric"] {
+        background: #FFFFFF;
+        border-radius: 14px;
+        padding: 14px 18px;
+        box-shadow: 0 4px 12px rgba(0, 11, 20, 0.06);
+        border-left: 4px solid #0055FF;
+    }
+    [data-testid="stMetric"] [data-testid="stMetricLabel"] {
+        color: #475569 !important;
+        font-weight: 700;
+        text-transform: uppercase;
+        font-size: 0.78rem;
+        letter-spacing: 0.5px;
+    }
+    [data-testid="stMetric"] [data-testid="stMetricValue"] {
+        color: #0A142F !important;
+        font-weight: 900;
+    }
+
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 8px;
+    }
+    .stTabs [data-baseweb="tab"] {
+        background: #FFFFFF;
+        border-radius: 10px 10px 0 0;
+        padding: 10px 18px;
+        color: #0A142F;
+        font-weight: 700;
+    }
+    .stTabs [aria-selected="true"] {
+        background: #0055FF;
+        color: #FFFFFF !important;
+    }
+</style>
+""",
+    unsafe_allow_html=True,
+)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
 # Acesso ao session_state
 # ─────────────────────────────────────────────────────────────────────────────
 def get_resultado():
@@ -172,6 +266,7 @@ def render_header(resultado):
     titulo = resultado.get("edital_titulo", "Edital sem titulo")
     orgao = resultado.get("orgao", "Orgao nao informado")
     st.title("Diagnostico de Viabilidade")
+    st.markdown('<div class="linha-logo"></div>', unsafe_allow_html=True)
     st.caption(f"{titulo} — {orgao}")
 
 
