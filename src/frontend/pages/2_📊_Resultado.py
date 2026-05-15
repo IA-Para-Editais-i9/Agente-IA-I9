@@ -293,10 +293,43 @@ def render_tabs_placeholders(resultado):
 
     with tab_criterios:
         # ─────────────────────────────────────────────────────────────────
-        # [E3] INSERIR AQUI — Tab: Criterios e Gaps
-        # Consumir: resultado["criterios_atendidos"] e resultado["gaps_identificados"]
+        # [E3] Tab: Criterios e Gaps — implementado
+        # Consome: resultado["criterios_atendidos"] e resultado["gaps_identificados"]
         # ─────────────────────────────────────────────────────────────────
-        st.info("Em desenvolvimento — Task E3 (Criterios Atendidos vs Gaps)")
+        st.markdown(
+            "##### Diagnostico detalhado\n"
+            "Comparativo entre o que a empresa **atende** no edital e os **gaps** "
+            "que precisam ser endereçados antes da submissao."
+        )
+
+        criterios = resultado.get("criterios_atendidos", [])
+        gaps = resultado.get("gaps_identificados", [])
+
+        col_atendidos, col_gaps = st.columns(2)
+
+        with col_atendidos:
+            st.markdown(
+                f"""
+                <div class="criterio-coluna-header criterio-header-atendido">
+                    <span class="criterio-coluna-titulo">✅ Criterios Atendidos</span>
+                    <span class="criterio-counter">{len(criterios)}</span>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+            render_lista_criterios(criterios, "atendido")
+
+        with col_gaps:
+            st.markdown(
+                f"""
+                <div class="criterio-coluna-header criterio-header-gap">
+                    <span class="criterio-coluna-titulo">❌ Gaps Identificados</span>
+                    <span class="criterio-counter">{len(gaps)}</span>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+            render_lista_criterios(gaps, "gap")
 
     with tab_acoes:
         # ─────────────────────────────────────────────────────────────────
