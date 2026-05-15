@@ -212,6 +212,67 @@ def render_justificativa(resultado):
 
 
 # ─────────────────────────────────────────────────────────────────────────────
+# Helper: renderiza lista de criterios ou gaps em cards visuais
+# ─────────────────────────────────────────────────────────────────────────────
+def render_lista_criterios(lista, tipo):
+    """Renderiza lista de criterios ou gaps em cards visuais.
+
+    Aceita itens como string ou dict (com chaves 'criterio'/'gap',
+    'evidencia'/'detalhe' e opcionalmente 'impacto').
+
+    Args:
+        lista: list[str] ou list[dict]
+        tipo: "atendido" (verde) ou "gap" (vermelho)
+    """
+    if not lista:
+        msg = (
+            "Nenhum criterio atendido identificado."
+            if tipo == "atendido"
+            else "Nenhum gap identificado."
+        )
+        st.info(msg)
+        return
+
+    card_class = "criterio-card-atendido" if tipo == "atendido" else "criterio-card-gap"
+    icone = "✅" if tipo == "atendido" else "❌"
+
+    for item in lista:
+        if isinstance(item, str):
+            titulo = item
+            descricao = ""
+            impacto = ""
+        elif isinstance(item, dict):
+            titulo = item.get("criterio") or item.get("gap") or item.get("titulo") or ""
+            descricao = (
+                item.get("evidencia") or item.get("detalhe") or item.get("descricao") or ""
+            )
+            impacto = item.get("impacto", "") if tipo == "gap" else ""
+        else:
+            titulo = str(item)
+            descricao = ""
+            impacto = ""
+
+        badge_impacto = (
+            f'<span class="criterio-impacto-badge">Impacto: {impacto}</span>'
+            if impacto
+            else ""
+        )
+        descricao_html = (
+            f'<div class="criterio-descricao">{descricao}</div>' if descricao else ""
+        )
+
+        st.markdown(
+            f"""
+            <div class="{card_class}">
+                <div class="criterio-titulo">{icone} {titulo}{badge_impacto}</div>
+                {descricao_html}
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+
+# ─────────────────────────────────────────────────────────────────────────────
 # Tabs — esqueleto para incremento de E3 e E4
 # ─────────────────────────────────────────────────────────────────────────────
 def render_tabs_placeholders(resultado):
