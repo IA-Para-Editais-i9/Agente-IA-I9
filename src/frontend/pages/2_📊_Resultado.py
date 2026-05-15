@@ -347,6 +347,61 @@ def render_lista_criterios(lista, tipo):
 
 
 # ─────────────────────────────────────────────────────────────────────────────
+# Helper: renderiza um card de acao prioritaria com numero em destaque
+# ─────────────────────────────────────────────────────────────────────────────
+def render_acao_prioritaria(acao, numero):
+    """Renderiza card de acao prioritaria com numero grande em destaque.
+
+    Aceita acao como string ou dict com chaves 'titulo', 'descricao',
+    'prazo_estimado'/'prazo', 'esforco' e 'responsavel_sugerido'.
+
+    Args:
+        acao: str ou dict
+        numero: 1, 2 ou 3 (posicao no top 3)
+    """
+    if isinstance(acao, str):
+        titulo = acao
+        descricao = ""
+        prazo = ""
+        esforco = ""
+        responsavel = ""
+    elif isinstance(acao, dict):
+        titulo = acao.get("titulo") or acao.get("acao") or ""
+        descricao = acao.get("descricao") or acao.get("detalhe") or ""
+        prazo = acao.get("prazo_estimado") or acao.get("prazo") or ""
+        esforco = acao.get("esforco", "")
+        responsavel = acao.get("responsavel_sugerido") or acao.get("responsavel") or ""
+    else:
+        titulo = str(acao)
+        descricao = prazo = esforco = responsavel = ""
+
+    tags_html = []
+    if prazo:
+        tags_html.append(f'<span class="acao-tag">⏱ {prazo}</span>')
+    if esforco:
+        tags_html.append(f'<span class="acao-tag">⚡ Esforço: {esforco}</span>')
+    if responsavel:
+        tags_html.append(f'<span class="acao-tag">👤 {responsavel}</span>')
+    tags_render = "".join(tags_html)
+
+    descricao_html = (
+        f'<div class="acao-descricao">{descricao}</div>' if descricao else ""
+    )
+
+    st.markdown(
+        f"""
+        <div class="acao-card-prioritaria">
+            <span class="acao-numero-badge">{numero}</span>
+            <div class="acao-titulo">{titulo}</div>
+            {descricao_html}
+            <div class="acao-tags">{tags_render}</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+# ─────────────────────────────────────────────────────────────────────────────
 # Tabs — esqueleto para incremento de E3 e E4
 # ─────────────────────────────────────────────────────────────────────────────
 def render_tabs_placeholders(resultado):
