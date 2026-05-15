@@ -202,16 +202,24 @@ def trace_llm_call(name: str, model: str | None = None):
             response = func(*args, **kwargs)
             latency_ms = (time.perf_counter() - inicio) * 1000
 
-            tokens_input, tokens_output = _extract_tokens(response)
-            log_llm_call(
-                name=name,
-                prompt=prompt,
-                response=response,
-                model=model,
-                tokens_input=tokens_input,
-                tokens_output=tokens_output,
-                latency_ms=latency_ms,
-            )
+            try:
+                tokens_input, tokens_output = _extract_tokens(response)
+                log_llm_call(
+                    name=name,
+                    prompt=prompt,
+                    response=response,
+                    model=model,
+                    tokens_input=tokens_input,
+                    tokens_output=tokens_output,
+                    latency_ms=latency_ms,
+                )
+            except Exception as exc:  # noqa: BLE001
+                logger.warning(
+                    "Falha no trace_llm_call('%s'): %s. "
+                    "Pipeline continua normalmente.",
+                    name,
+                    exc,
+                )
             return response
 
         return wrapper
