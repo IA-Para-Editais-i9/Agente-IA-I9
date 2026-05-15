@@ -33,6 +33,7 @@
   - [11. Fluxo completo de uma tarefa](#11-fluxo-completo-de-uma-tarefa)
   - [12. Dúvidas frequentes](#12-dúvidas-frequentes)
 
+
 ---
 
 ## 1. Por que temos essas regras?
@@ -55,7 +56,43 @@ O pipeline segue o padrão **Pipe & Filter**. A ideia é simples:
 - O **pipe** é o `PipelineContext` — um objeto de dados que é criado uma vez e passado de filtro em filtro.
 - Cada filtro recebe o contexto, faz seu trabalho, popula seu campo e devolve o contexto para o próximo.
 
+**Nota:** A conversão inicial PDF → Markdown é feita usando **PyMuPDF + Tesseract** (substituindo o Docling, que não usamos mais).
+
 ```
+PDF input
+   ↓
+f01_ingestion.py    → popula: ctx.markdown_text               (PyMuPDF + Tesseract)  (Squad A)
+   ↓
+f02_indexing.py     → popula: ctx.edital_collection_id        (Squad A)
+                      popula: ctx.empresa_collection_id       (Squad A)
+   ↓
+f03_extraction.py   → popula: ctx.criterios_edital            (Squad B)
+   ↓
+f04_retrieval.py    → popula: ctx.company_chunks              (Squad C)
+   ↓
+f05_inference.py    → popula: ctx.resultado_fit               (Squad C)
+   ↓
+JSON ResultadoFit
+```
+
+### O contrato central: `PipelineContext`
+
+O arquivo `src/pipeline/context.py` define todos os campos que existem no pipeline. **Este arquivo é o contrato entre todos os squads.** Se você precisar adicionar um campo novo, isso afeta todos — veja a seção de CODEOWNERS antes de fazer qualquer mudança.
+
+```python
+# src/pipeline/context.py
+@dataclass
+class PipelineContext:
+    pdf_path: str = ""              # entrada inicial
+
+    markdown_text: str = ""         # saída do f01
+    edital_collection_id: str = ""  # saída do f02 (id da coleção do edital)
+    empresa_collection_id: str = "" # saída do f02 (id da coleção empresa/i9+)
+    criterios_edital: Optional[dict] = None   # saída do f03
+    company_chunks: list[str] = field(default_factory=list)  # saída do f04
+    resultado_fit: Optional[dict] = None      # saída do f05
+```
+
 PDF input
    ↓
 f01_ingestion.py    → popula: ctx.markdown_text          (Squad A)
@@ -81,11 +118,12 @@ O arquivo `src/pipeline/context.py` define todos os campos que existem no pipeli
 class PipelineContext:
     pdf_path: str = ""              # entrada inicial
 
-    markdown_text: str = ""         # saída do f01
-    chroma_collection_id: str = ""  # saída do f02
-    criterios_edital: Optional[dict] = None   # saída do f03
-    company_chunks: list[str] = field(default_factory=list)  # saída do f04
-    resultado_fit: Optional[dict] = None      # saída do f05
+     markdown_text: str = ""         # saída do f01
+     edital_collection_id: str = ""  # saída do f02
+     empresa_collection_id: str = "" # saída do f02 (docs i9)
+     criterios_edital: Optional[dict] = None   # saída do f03
+     company_chunks: list[str] = field(default_factory=list)  # saída do f04
+     resultado_fit: Optional[dict] = None      # saída do f05
 ```
 
 ---
@@ -155,10 +193,7 @@ Agente-IA-i9/
 │       └── test_pipeline_e2e.py
 │
 ├── docs/
-│   ├── CONTRIBUTING.md                   ← este arquivo
-│   ├── architecture.md
-│   ├── schemas.md
-│   └── api.md
+│   ├── planejamento_equipes_i9_v2.md           ← planejamento por squads/cronograma
 │
 ├── .env.example                          ← template das variáveis (sem valores reais)
 ├── .gitignore

@@ -433,23 +433,22 @@ def pdf_to_markdown(pdf_path: str, include_page_breaks: bool = False, deduplicat
     return "\n".join(lines).strip() + "\n"
 
 # ---------------------------------------------------------------------------
-# Docling (desativado por enquanto)
+
 # ---------------------------------------------------------------------------
-# from docling.document_converter import DocumentConverter
+
 
 
 class IngestionFilter(Filter):
     """
     Filter responsável por:
     1. Receber um PDF
-    2. Processar com Docling
-    4. Exportar para Markdown
-    5. Realizar limpeza básica do texto
-    6. Salvar no PipelineContext
+    2. Converter usando PyMuPDF + Tesseract
+    3. Exportar para Markdown
+    4. Realizar limpeza básica do texto
+    5. Salvar no PipelineContext
     """
     def __init__(self):
-        # Docling desativado temporariamente.
-        # self.converter = DocumentConverter()
+        # Conversão agora feita por PyMuPDF + Tesseract
         pass
 
     def run(self, context: PipelineContext) -> PipelineContext:
@@ -463,10 +462,7 @@ class IngestionFilter(Filter):
             raise FileNotFoundError(f">> PDF não encontrado: {pdf_path}")
 
         try:
-            # --- Docling (desativado por enquanto) ---
-            # result = self.converter.convert(pdf_path)  # converte em docling
-            # markdown = result.document.export_to_markdown()  # exporta em markdown
-
+            # Conversão e exportação por PyMuPDF + Tesseract substitui o antigo uso do Docling
             markdown = pdf_to_markdown(pdf_path)
             markdown = self.clean_markdown(markdown) # remove colunas repetidas e refina markdown
 
