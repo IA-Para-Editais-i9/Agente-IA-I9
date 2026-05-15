@@ -558,11 +558,31 @@ def render_tabs_placeholders(resultado):
 
     with tab_acoes:
         # ─────────────────────────────────────────────────────────────────
-        # [E4] INSERIR AQUI — Tab: Acoes e Recomendacoes
-        # Consumir: resultado["acoes_prioritarias"], resultado["recomendacoes"],
-        #           resultado["parceiros_sugeridos"]
+        # [E4] Tab: Acoes e Recomendacoes — implementado
+        # Consome: resultado["acoes_prioritarias"], resultado["recomendacoes"],
+        #          resultado["parceiros_sugeridos"], resultado["necessidade_parceria_ict"]
         # ─────────────────────────────────────────────────────────────────
-        st.info("Em desenvolvimento — Task E4 (Acoes Prioritarias e Recomendacoes)")
+        st.markdown(
+            "##### Plano de acao\n"
+            "Acoes priorizadas, recomendacoes de adequacao e parceiros sugeridos "
+            "para aumentar o fit do edital."
+        )
+
+        acoes = resultado.get("acoes_prioritarias", [])
+
+        st.markdown(
+            '<div class="acao-section-header">🎯 Top 3 Acoes Prioritarias</div>',
+            unsafe_allow_html=True,
+        )
+
+        if not acoes:
+            st.info("Nenhuma acao prioritaria identificada.")
+        else:
+            top3 = acoes[:3]
+            cols = st.columns(len(top3))
+            for idx, (col, acao) in enumerate(zip(cols, top3), start=1):
+                with col:
+                    render_acao_prioritaria(acao, idx)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
