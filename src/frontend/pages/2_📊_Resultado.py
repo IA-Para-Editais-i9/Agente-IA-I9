@@ -90,6 +90,80 @@ st.markdown(
         background: #0055FF;
         color: #FFFFFF !important;
     }
+
+    /* [E3] Cards de criterios atendidos vs gaps identificados */
+    .criterio-coluna-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 14px;
+        border-radius: 10px;
+        margin-bottom: 12px;
+        color: #FFFFFF;
+        font-weight: 800;
+    }
+    .criterio-header-atendido {
+        background: linear-gradient(90deg, #27ae60 0%, #2ecc71 100%);
+    }
+    .criterio-header-gap {
+        background: linear-gradient(90deg, #c0392b 0%, #e74c3c 100%);
+    }
+    .criterio-coluna-titulo {
+        font-size: 1.05rem;
+        letter-spacing: 0.3px;
+    }
+    .criterio-counter {
+        background: rgba(255, 255, 255, 0.25);
+        padding: 2px 12px;
+        border-radius: 999px;
+        font-size: 0.95rem;
+        font-weight: 900;
+    }
+    .criterio-card-atendido,
+    .criterio-card-gap {
+        padding: 12px 16px;
+        border-radius: 8px;
+        margin-bottom: 8px;
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .criterio-card-atendido {
+        border-left: 4px solid #27ae60;
+        background: rgba(39, 174, 96, 0.08);
+    }
+    .criterio-card-gap {
+        border-left: 4px solid #e74c3c;
+        background: rgba(231, 76, 60, 0.08);
+    }
+    .criterio-card-atendido:hover,
+    .criterio-card-gap:hover {
+        transform: translateX(2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    }
+    .criterio-titulo {
+        font-weight: 700;
+        color: #0A142F;
+        margin-bottom: 4px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+    .criterio-descricao {
+        font-size: 0.92rem;
+        color: #475569;
+        line-height: 1.45;
+    }
+    .criterio-impacto-badge {
+        background: #fde2e2;
+        color: #c0392b;
+        font-size: 0.72rem;
+        font-weight: 800;
+        padding: 2px 8px;
+        border-radius: 999px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-left: 4px;
+    }
 </style>
 """,
     unsafe_allow_html=True,
