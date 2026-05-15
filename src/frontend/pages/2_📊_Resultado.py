@@ -584,6 +584,18 @@ def render_tabs_placeholders(resultado):
                 with col:
                     render_acao_prioritaria(acao, idx)
 
+        st.markdown(
+            '<div class="acao-section-header">💡 Recomendacoes de Adequacao</div>',
+            unsafe_allow_html=True,
+        )
+
+        recomendacoes = resultado.get("recomendacoes", [])
+        if not recomendacoes:
+            st.info("Nenhuma recomendacao adicional para este edital.")
+        else:
+            for rec in recomendacoes:
+                render_recomendacao(rec)
+
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Botoes de navegacao no rodape
