@@ -118,6 +118,41 @@ def render_justificativa(resultado):
 
 
 # ─────────────────────────────────────────────────────────────────────────────
+# Tabs — esqueleto para incremento de E3 e E4
+# ─────────────────────────────────────────────────────────────────────────────
+def render_tabs_placeholders(resultado):
+    tab_geral, tab_criterios, tab_acoes = st.tabs(
+        ["Visao Geral", "Criterios e Gaps", "Acoes e Recomendacoes"]
+    )
+
+    with tab_geral:
+        st.markdown("##### Resumo do diagnostico")
+        n_criterios = len(resultado.get("criterios_atendidos", []))
+        n_gaps = len(resultado.get("gaps_identificados", []))
+        n_acoes = len(resultado.get("acoes_prioritarias", []))
+        st.write(
+            f"Foram identificados **{n_criterios}** criterios atendidos, "
+            f"**{n_gaps}** gaps e **{n_acoes}** acoes prioritarias. "
+            "Use as abas ao lado para o detalhamento completo."
+        )
+
+    with tab_criterios:
+        # ─────────────────────────────────────────────────────────────────
+        # [E3] INSERIR AQUI — Tab: Criterios e Gaps
+        # Consumir: resultado["criterios_atendidos"] e resultado["gaps_identificados"]
+        # ─────────────────────────────────────────────────────────────────
+        st.info("Em desenvolvimento — Task E3 (Criterios Atendidos vs Gaps)")
+
+    with tab_acoes:
+        # ─────────────────────────────────────────────────────────────────
+        # [E4] INSERIR AQUI — Tab: Acoes e Recomendacoes
+        # Consumir: resultado["acoes_prioritarias"], resultado["recomendacoes"],
+        #           resultado["parceiros_sugeridos"]
+        # ─────────────────────────────────────────────────────────────────
+        st.info("Em desenvolvimento — Task E4 (Acoes Prioritarias e Recomendacoes)")
+
+
+# ─────────────────────────────────────────────────────────────────────────────
 # Empty state — quando o usuario acessa direto sem ter feito upload
 # ─────────────────────────────────────────────────────────────────────────────
 def render_empty_state():
@@ -155,6 +190,7 @@ def main():
     with col_class:
         render_classificacao(resultado.get("classificacao", "—"))
     render_justificativa(resultado)
+    render_tabs_placeholders(resultado)
 
 
 main()
