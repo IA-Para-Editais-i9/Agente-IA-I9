@@ -164,6 +164,147 @@ st.markdown(
         letter-spacing: 0.5px;
         margin-left: 4px;
     }
+
+    /* [E4] Cards de acoes prioritarias, recomendacoes e parceiros */
+    .acao-section-header {
+        margin-top: 28px;
+        margin-bottom: 14px;
+        font-size: 1.2rem;
+        font-weight: 800;
+        color: #0A142F;
+        border-bottom: 2px solid rgba(0, 85, 255, 0.15);
+        padding-bottom: 6px;
+    }
+    .acao-card-prioritaria {
+        background: linear-gradient(135deg, #0055FF 0%, #764ba2 100%);
+        color: #FFFFFF;
+        padding: 18px 20px 20px 20px;
+        border-radius: 14px;
+        margin-bottom: 12px;
+        box-shadow: 0 6px 18px rgba(0, 85, 255, 0.22);
+        min-height: 180px;
+        position: relative;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .acao-card-prioritaria:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 24px rgba(0, 85, 255, 0.32);
+    }
+    .acao-numero-badge {
+        display: inline-block;
+        font-size: 2.4rem;
+        font-weight: 900;
+        line-height: 1;
+        color: rgba(255, 255, 255, 0.95);
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 12px;
+        padding: 4px 14px;
+        margin-bottom: 8px;
+    }
+    .acao-titulo {
+        font-size: 1.05rem;
+        font-weight: 800;
+        margin-top: 8px;
+        margin-bottom: 6px;
+        line-height: 1.25;
+    }
+    .acao-descricao {
+        font-size: 0.9rem;
+        opacity: 0.92;
+        line-height: 1.45;
+        margin-bottom: 8px;
+    }
+    .acao-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 8px;
+    }
+    .acao-tag {
+        background: rgba(255, 255, 255, 0.2);
+        color: #FFFFFF;
+        padding: 3px 10px;
+        border-radius: 999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    .recomendacao-card {
+        border-left: 4px solid #3498db;
+        background: rgba(52, 152, 219, 0.08);
+        padding: 12px 16px;
+        border-radius: 8px;
+        margin-bottom: 8px;
+        transition: transform 0.15s ease;
+    }
+    .recomendacao-card:hover {
+        transform: translateX(2px);
+    }
+    .recomendacao-titulo {
+        font-weight: 700;
+        color: #1a4d6e;
+        margin-bottom: 4px;
+    }
+    .recomendacao-descricao {
+        font-size: 0.9rem;
+        color: #475569;
+        line-height: 1.45;
+    }
+
+    .parceiro-card {
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        background: #FFFFFF;
+        padding: 14px 18px;
+        border-radius: 10px;
+        margin-bottom: 10px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        transition: box-shadow 0.15s ease, transform 0.15s ease;
+    }
+    .parceiro-card:hover {
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+        transform: translateY(-2px);
+    }
+    .parceiro-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-bottom: 6px;
+    }
+    .parceiro-nome {
+        font-weight: 800;
+        color: #0A142F;
+        font-size: 1.02rem;
+    }
+    .parceiro-tipo-badge {
+        color: #FFFFFF;
+        font-size: 0.72rem;
+        font-weight: 800;
+        padding: 2px 10px;
+        border-radius: 999px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .parceiro-match {
+        background: #ECFDF5;
+        color: #047857;
+        font-size: 0.78rem;
+        font-weight: 700;
+        padding: 2px 10px;
+        border-radius: 999px;
+    }
+    .parceiro-motivo {
+        font-size: 0.92rem;
+        color: #475569;
+        line-height: 1.45;
+        margin-top: 4px;
+    }
+    .parceiro-contato {
+        font-size: 0.82rem;
+        color: #64748B;
+        margin-top: 6px;
+    }
 </style>
 """,
     unsafe_allow_html=True,
