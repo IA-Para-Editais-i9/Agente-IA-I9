@@ -1,5 +1,10 @@
+import re
+from datetime import datetime
+
 import plotly.graph_objects as go
 import streamlit as st
+
+from src.frontend.utils.exportar import gerar_markdown
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -761,12 +766,34 @@ def render_tabs_placeholders(resultado):
 # ─────────────────────────────────────────────────────────────────────────────
 # Botoes de navegacao no rodape
 # ─────────────────────────────────────────────────────────────────────────────
-def render_navigation():
+def _slug(texto: str) -> str:
+    """Converte titulo em slug seguro para nome de arquivo."""
+    if not texto:
+        return "analise"
+    base = re.sub(r"[^a-zA-Z0-9_-]+", "_", texto).strip("_").lower()
+    return base[:60] or "analise"
+
+
+def render_navigation(resultado):
     st.divider()
-    col_voltar, col_nova = st.columns(2)
+    col_voltar, col_exportar, col_nova = st.columns(3)
+
     with col_voltar:
         if st.button("← Voltar ao Upload", use_container_width=True):
             st.switch_page("pages/1_📄_Upload.py")
+
+    with col_exportar:
+        markdown_relatorio = gerar_markdown(resultado)
+        slug = _slug(resultado.get("edital_titulo", ""))
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M")
+        st.download_button(
+            label="📥 Exportar Relatorio",
+            data=markdown_relatorio,
+            file_name=f"analise_{slug}_{timestamp}.md",
+            mime="text/markdown",
+            use_container_width=True,
+        )
+
     with col_nova:
         if st.button(
             "🔄 Nova Analise",
@@ -818,7 +845,7 @@ def main():
         render_classificacao(resultado.get("classificacao", "—"))
     render_justificativa(resultado)
     render_tabs_placeholders(resultado)
-    render_navigation()
+    render_navigation(resultado)
 
 
 main()
