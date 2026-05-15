@@ -105,3 +105,115 @@ def flush_langfuse() -> None:
         get_langfuse_client().flush()
     except Exception as exc:  # noqa: BLE001
         logger.warning("Falha ao dar flush no Langfuse: %s", exc)
+
+
+def log_llm_call(
+    name: str,
+    prompt: Any,
+    response: Any,
+    model: str | None = None,
+    tokens_input: int | None = None,
+    tokens_output: int | None = None,
+    latency_ms: float | None = None,
+    metadata: dict | None = None,
+) -> None:
+    """Registra uma chamada LLM no Langfuse.
+
+    Toda falha vira `warning` no logging — nunca propaga excecao para
+    nao quebrar o pipeline principal.
+    """
+    try:
+        client = get_langfuse_client()
+        usage = {}
+        if tokens_input is not None:
+            usage["input"] = tokens_input
+        if tokens_output is not None:
+            usage["output"] = tokens_output
+
+        client.generation(
+            name=name,
+            model=model,
+            input=prompt,
+            output=response,
+            usage=usage or None,
+            metadata={
+                **(metadata or {}),
+                "latency_ms": latency_ms,
+            },
+        )
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("Falha ao registrar chamada LLM '%s': %s", name, exc)
+
+
+def _extract_tokens(response: Any) -> tuple[int | None, int | None]:
+    """Tenta extrair input/output tokens de objetos comuns de SDKs LLM.
+
+    Suporta atributos `usage.prompt_tokens` / `usage.completion_tokens`
+    (OpenAI-like) e dicts com chaves similares. Devolve `(None, None)`
+    quando nao conseguir identificar.
+    """
+    if response is None:
+        return None, None
+
+    usage = getattr(response, "usage", None)
+    if usage is None and isinstance(response, dict):
+        usage = response.get("usage")
+
+    if usage is None:
+        return None, None
+
+    def _get(obj: Any, *chaves: str) -> int | None:
+        for chave in chaves:
+            valor = getattr(obj, chave, None)
+            if valor is None and isinstance(obj, dict):
+                valor = obj.get(chave)
+            if isinstance(valor, int):
+                return valor
+        return None
+
+    tokens_input = _get(usage, "prompt_tokens", "input_tokens", "input")
+    tokens_output = _get(usage, "completion_tokens", "output_tokens", "output")
+    return tokens_input, tokens_output
+
+
+def trace_llm_call(name: str, model: str | None = None):
+    """Decorator que registra automaticamente a chamada de uma funcao LLM.
+
+    A funcao decorada deve receber o `prompt` como primeiro argumento
+    posicional ou como kwarg `prompt`. O valor de retorno e registrado
+    como `response`.
+
+    Uso:
+        @trace_llm_call(name="agente_extracao", model="llama-3.1-8b-instant")
+        def extrair_criterios(prompt: str) -> dict:
+            ...
+    """
+    import time
+    from functools import wraps
+
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
+            prompt = kwargs.get("prompt")
+            if prompt is None and args:
+                prompt = args[0]
+
+            inicio = time.perf_counter()
+            response = func(*args, **kwargs)
+            latency_ms = (time.perf_counter() - inicio) * 1000
+
+            tokens_input, tokens_output = _extract_tokens(response)
+            log_llm_call(
+                name=name,
+                prompt=prompt,
+                response=response,
+                model=model,
+                tokens_input=tokens_input,
+                tokens_output=tokens_output,
+                latency_ms=latency_ms,
+            )
+            return response
+
+        return wrapper
+
+    return decorator
