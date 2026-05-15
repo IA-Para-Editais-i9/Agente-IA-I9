@@ -596,6 +596,26 @@ def render_tabs_placeholders(resultado):
             for rec in recomendacoes:
                 render_recomendacao(rec)
 
+        st.markdown(
+            '<div class="acao-section-header">🤝 Parceiros Sugeridos</div>',
+            unsafe_allow_html=True,
+        )
+
+        parceiros = resultado.get("parceiros_sugeridos", [])
+        precisa_ict = resultado.get("necessidade_parceria_ict", False)
+
+        if parceiros:
+            for parceiro in parceiros:
+                render_parceiro(parceiro)
+        elif precisa_ict:
+            st.warning(
+                "⚠️ Parceria com ICT recomendada — nenhum parceiro especifico sugerido."
+            )
+        else:
+            st.success(
+                "✅ Nenhum parceiro adicional necessario para esse edital."
+            )
+
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Botoes de navegacao no rodape
