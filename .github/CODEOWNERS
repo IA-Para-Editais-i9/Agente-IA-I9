@@ -1,0 +1,42 @@
+# Substitua @squad-A … @squad-E pelos @org/time ou @usuários reais quando os times existirem no GitHub.
+# Veja CONTRIBUTING (1).md — seção "CODEOWNERS — quem revisa o quê".
+
+# ── Squad A — Ingestão & Memória
+
+src/pipeline/filters/f01_*    @squad-A
+src/pipeline/filters/f02_*    @squad-A
+data/empresa/                 @squad-A
+
+# ── Squad B — Schemas & Extração
+
+src/pipeline/filters/f03_*    @squad-B
+src/schemas/                  @squad-B
+
+# ── Squad C — Inferência & Fit
+
+src/pipeline/filters/f04_*    @squad-C
+src/pipeline/filters/f05_*    @squad-C
+
+# ── Squad D — Orquestração & Backend
+
+src/api/                      @squad-D
+src/pipeline/pipeline.py      @squad-D
+
+# ── Squad E — Frontend & Monitoramento
+
+src/frontend/                 @squad-E
+src/monitoring/               @squad-E
+
+# ── Arquivos de contrato central (TODOS revisam)
+
+src/pipeline/base.py          @squad-A @squad-B @squad-C @squad-D
+src/pipeline/context.py       @squad-A @squad-B @squad-C @squad-D
+
+# ── Schemas são contrato entre múltiplos squads
+
+src/schemas/criterios_edital.py    @squad-B @squad-C
+src/schemas/resultado_fit.py       @squad-B @squad-C @squad-D @squad-E
+
+# ── CI e configuração de repo
+
+.github/                      @squad-A @squad-B @squad-C @squad-D @squad-E
