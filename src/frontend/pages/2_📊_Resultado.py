@@ -402,6 +402,102 @@ def render_acao_prioritaria(acao, numero):
 
 
 # ─────────────────────────────────────────────────────────────────────────────
+# Helper: renderiza um card de recomendacao
+# ─────────────────────────────────────────────────────────────────────────────
+def render_recomendacao(rec):
+    """Renderiza card de recomendacao. Aceita str ou dict."""
+    if isinstance(rec, str):
+        titulo = rec
+        descricao = ""
+    elif isinstance(rec, dict):
+        titulo = rec.get("titulo") or rec.get("recomendacao") or ""
+        descricao = rec.get("descricao") or rec.get("detalhe") or ""
+    else:
+        titulo = str(rec)
+        descricao = ""
+
+    descricao_html = (
+        f'<div class="recomendacao-descricao">{descricao}</div>' if descricao else ""
+    )
+
+    st.markdown(
+        f"""
+        <div class="recomendacao-card">
+            <div class="recomendacao-titulo">💡 {titulo}</div>
+            {descricao_html}
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Helper: renderiza um card de parceiro sugerido
+# ─────────────────────────────────────────────────────────────────────────────
+PARCEIRO_TIPO_CORES = {
+    "ICT": "#0055FF",
+    "Universidade": "#27ae60",
+    "Instituto": "#f39c12",
+    "Empresa": "#9b59b6",
+}
+
+
+def render_parceiro(parceiro):
+    """Renderiza card horizontal de parceiro sugerido. Aceita str ou dict.
+
+    Dict suporta chaves: nome, tipo, motivo/justificativa, match, contato.
+    """
+    if isinstance(parceiro, str):
+        nome = parceiro
+        tipo = ""
+        motivo = ""
+        match = None
+        contato = ""
+    elif isinstance(parceiro, dict):
+        nome = parceiro.get("nome") or parceiro.get("parceiro") or ""
+        tipo = parceiro.get("tipo", "")
+        motivo = parceiro.get("motivo") or parceiro.get("justificativa") or ""
+        match = parceiro.get("match")
+        contato = parceiro.get("contato", "")
+    else:
+        nome = str(parceiro)
+        tipo = motivo = contato = ""
+        match = None
+
+    tipo_html = ""
+    if tipo:
+        cor = PARCEIRO_TIPO_CORES.get(tipo, "#475569")
+        tipo_html = (
+            f'<span class="parceiro-tipo-badge" style="background:{cor};">{tipo}</span>'
+        )
+
+    match_html = (
+        f'<span class="parceiro-match">Match {match}%</span>' if match is not None else ""
+    )
+    motivo_html = (
+        f'<div class="parceiro-motivo">{motivo}</div>' if motivo else ""
+    )
+    contato_html = (
+        f'<div class="parceiro-contato">📧 {contato}</div>' if contato else ""
+    )
+
+    st.markdown(
+        f"""
+        <div class="parceiro-card">
+            <div class="parceiro-header">
+                <span class="parceiro-nome">🤝 {nome}</span>
+                {tipo_html}
+                {match_html}
+            </div>
+            {motivo_html}
+            {contato_html}
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+# ─────────────────────────────────────────────────────────────────────────────
 # Tabs — esqueleto para incremento de E3 e E4
 # ─────────────────────────────────────────────────────────────────────────────
 def render_tabs_placeholders(resultado):
