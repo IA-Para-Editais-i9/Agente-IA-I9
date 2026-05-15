@@ -2,9 +2,12 @@
 
 from __future__ import annotations
 
+import re
 from datetime import datetime
 
 import streamlit as st
+
+from src.frontend.utils.exportar import gerar_markdown
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -162,6 +165,14 @@ def get_color_by_percentual(percentual: float) -> str:
     return "#e74c3c"
 
 
+def _slug(texto: str) -> str:
+    """Converte titulo em slug seguro para nome de arquivo."""
+    if not texto:
+        return "analise"
+    base = re.sub(r"[^a-zA-Z0-9_-]+", "_", texto).strip("_").lower()
+    return base[:60] or "analise"
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Empty state
 # ─────────────────────────────────────────────────────────────────────────────
@@ -211,14 +222,28 @@ def render_item_historico(item: dict, index: int) -> None:
         """,
         unsafe_allow_html=True,
     )
-    if st.button(
-        "🔍 Ver Detalhes",
-        key=f"ver_detalhes_{index}",
-        use_container_width=True,
-    ):
-        st.session_state["resultado_fit"] = item["resultado_completo"]
-        st.session_state["analise_concluida"] = True
-        st.switch_page("pages/2_📊_Resultado.py")
+    col_ver, col_exportar = st.columns(2)
+    with col_ver:
+        if st.button(
+            "🔍 Ver Detalhes",
+            key=f"ver_detalhes_{index}",
+            use_container_width=True,
+        ):
+            st.session_state["resultado_fit"] = item["resultado_completo"]
+            st.session_state["analise_concluida"] = True
+            st.switch_page("pages/2_📊_Resultado.py")
+    with col_exportar:
+        resultado_completo = item.get("resultado_completo") or {}
+        slug = _slug(resultado_completo.get("edital_titulo") or titulo)
+        ts_arquivo = item.get("timestamp", "").replace(":", "").replace("-", "")[:13]
+        st.download_button(
+            label="📥 Exportar",
+            data=gerar_markdown(resultado_completo),
+            file_name=f"analise_{slug}_{ts_arquivo}.md",
+            mime="text/markdown",
+            key=f"exportar_{index}",
+            use_container_width=True,
+        )
 
 
 # ─────────────────────────────────────────────────────────────────────────────
