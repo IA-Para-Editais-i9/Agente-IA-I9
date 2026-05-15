@@ -3,3 +3,4 @@ pytest>=8.0
 ruff>=0.4
 docling>=2.90.0
 pypdf>=6.10.2
+langfuse>=2.0.0
