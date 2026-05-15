@@ -271,6 +271,22 @@ if analisar and edital_pdf is not None and not edital_excedeu:
         [d.name for d in docs_empresa] if docs_empresa else []
     )
     st.session_state["resultado_fit"] = resultado
+
+    from datetime import datetime
+
+    historico = st.session_state.get("historico") or []
+    item = {
+        "timestamp": datetime.now().isoformat(timespec="seconds"),
+        "edital_nome": edital_pdf.name,
+        "edital_titulo": resultado.get("edital_titulo") or edital_pdf.name,
+        "orgao": resultado.get("orgao", "—"),
+        "percentual": resultado.get("percentual", 0),
+        "classificacao": resultado.get("classificacao", "—"),
+        "resultado_completo": resultado,
+    }
+    historico.insert(0, item)
+    st.session_state["historico"] = historico[:50]
+
     st.toast("Análise concluída com sucesso!", icon="✅")
 
 if st.session_state.get("analise_concluida"):
