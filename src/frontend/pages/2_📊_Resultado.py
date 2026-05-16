@@ -379,7 +379,7 @@ def render_parceiro(parceiro):
 # ─────────────────────────────────────────────────────────────────────────────
 def render_tabs_placeholders(resultado):
     tab_geral, tab_criterios, tab_acoes = st.tabs(
-        ["Visao Geral", "Criterios e Gaps", "Acoes e Recomendacoes"]
+        ["📋 Visão Geral", "✓ Critérios", "🎯 Ações e Recomendações"]
     )
 
     with tab_geral:
