@@ -257,9 +257,4 @@ if st.session_state.get("analise_concluida"):
         use_container_width=True,
         key="ir_resultado",
     ):
-        # TODO(E2): descomentar quando a página 2_📊_Resultado.py for entregue:
-        # st.switch_page("pages/2_📊_Resultado.py")
-        st.info(
-            "A página de **Resultado** ainda não foi entregue (task E2). "
-            "Os dados estão salvos em `st.session_state['resultado_fit']`."
-        )
+        st.switch_page("pages/2_📊_Resultado.py")
