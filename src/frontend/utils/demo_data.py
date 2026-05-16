@@ -74,7 +74,7 @@ MOCK_ALTO = {
     "parceiros_sugeridos": [
         {"nome": "Faculdade Positivo Ecoville", "tipo": "Universidade", "match": 92,
          "motivo": "Já parceiros em projeto anterior de NLP em editais.",
-         "contato": "parcerias@up.edu.br"},
+         "contato": "parcerias@positivoecoville.edu.br"},
     ],
     "recomendacoes": [
         "Submeter dentro da primeira semana — janela de avaliação prioritária.",
