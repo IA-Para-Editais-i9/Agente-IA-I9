@@ -10,310 +10,14 @@ from src.frontend.utils.exportar import gerar_markdown
 # ─────────────────────────────────────────────────────────────────────────────
 # Identidade visual i9+ — coerente com app.py e 1_📄_Upload.py da E1
 # ─────────────────────────────────────────────────────────────────────────────
-st.markdown(
-    """
-<style>
-    #MainMenu {visibility: hidden;} footer {visibility: hidden;} header {visibility: hidden;}
+from src.frontend.utils.plotly_theme import apply_theme
+from src.frontend.utils.demo_data import render_backend_status_pill
+from src.frontend.utils.styles import inject_global_ui
 
-    .stApp {
-        background-color: #F8FAFC;
-        background-image:
-            radial-gradient(at 10% 10%, rgba(0, 85, 255, 0.08) 0px, transparent 50%),
-            radial-gradient(at 90% 10%, rgba(230, 0, 73, 0.05) 0px, transparent 50%);
-        background-attachment: fixed;
-    }
+inject_global_ui()
+render_backend_status_pill()
+apply_theme()
 
-    h1 {
-        background: linear-gradient(to right, #0A142F 0%, #0055FF 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        font-weight: 900 !important;
-        font-size: 2.8rem !important;
-        margin-bottom: 0px !important;
-    }
-
-    .linha-logo {
-        height: 6px; width: 100px;
-        background: linear-gradient(to right, #E60049 0%, #0055FF 100%);
-        border-radius: 4px; margin-top: 12px; margin-bottom: 24px;
-        box-shadow: 0 4px 15px rgba(230, 0, 73, 0.4);
-    }
-
-    [data-testid="stSidebar"] {
-        background-color: #050B14 !important;
-        border-right: 2px solid rgba(0, 85, 255, 0.3);
-    }
-    [data-testid="stSidebarNav"] span, [data-testid="stSidebarNav"] svg {
-        color: #FFFFFF !important;
-        font-weight: 600;
-    }
-    [data-testid="stSidebar"] p, [data-testid="stSidebar"] div, [data-testid="stSidebar"] h2 {
-        color: #F8FAFC !important;
-    }
-    [data-testid="stSidebar"] button {
-        background-color: #0055FF !important;
-        color: #FFFFFF !important;
-        border: none !important;
-        font-weight: bold;
-        transition: all 0.3s ease;
-    }
-    [data-testid="stSidebar"] button:hover {
-        background-color: #E60049 !important;
-        transform: scale(1.02);
-    }
-
-    [data-testid="stMetric"] {
-        background: #FFFFFF;
-        border-radius: 14px;
-        padding: 14px 18px;
-        box-shadow: 0 4px 12px rgba(0, 11, 20, 0.06);
-        border-left: 4px solid #0055FF;
-    }
-    [data-testid="stMetric"] [data-testid="stMetricLabel"] {
-        color: #475569 !important;
-        font-weight: 700;
-        text-transform: uppercase;
-        font-size: 0.78rem;
-        letter-spacing: 0.5px;
-    }
-    [data-testid="stMetric"] [data-testid="stMetricValue"] {
-        color: #0A142F !important;
-        font-weight: 900;
-    }
-
-    .stTabs [data-baseweb="tab-list"] {
-        gap: 8px;
-    }
-    .stTabs [data-baseweb="tab"] {
-        background: #FFFFFF;
-        border-radius: 10px 10px 0 0;
-        padding: 10px 18px;
-        color: #0A142F;
-        font-weight: 700;
-    }
-    .stTabs [aria-selected="true"] {
-        background: #0055FF;
-        color: #FFFFFF !important;
-    }
-
-    /* [E3] Cards de criterios atendidos vs gaps identificados */
-    .criterio-coluna-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 10px 14px;
-        border-radius: 10px;
-        margin-bottom: 12px;
-        color: #FFFFFF;
-        font-weight: 800;
-    }
-    .criterio-header-atendido {
-        background: linear-gradient(90deg, #27ae60 0%, #2ecc71 100%);
-    }
-    .criterio-header-gap {
-        background: linear-gradient(90deg, #c0392b 0%, #e74c3c 100%);
-    }
-    .criterio-coluna-titulo {
-        font-size: 1.05rem;
-        letter-spacing: 0.3px;
-    }
-    .criterio-counter {
-        background: rgba(255, 255, 255, 0.25);
-        padding: 2px 12px;
-        border-radius: 999px;
-        font-size: 0.95rem;
-        font-weight: 900;
-    }
-    .criterio-card-atendido,
-    .criterio-card-gap {
-        padding: 12px 16px;
-        border-radius: 8px;
-        margin-bottom: 8px;
-        transition: transform 0.15s ease, box-shadow 0.15s ease;
-    }
-    .criterio-card-atendido {
-        border-left: 4px solid #27ae60;
-        background: rgba(39, 174, 96, 0.08);
-    }
-    .criterio-card-gap {
-        border-left: 4px solid #e74c3c;
-        background: rgba(231, 76, 60, 0.08);
-    }
-    .criterio-card-atendido:hover,
-    .criterio-card-gap:hover {
-        transform: translateX(2px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
-    }
-    .criterio-titulo {
-        font-weight: 700;
-        color: #0A142F;
-        margin-bottom: 4px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        flex-wrap: wrap;
-    }
-    .criterio-descricao {
-        font-size: 0.92rem;
-        color: #475569;
-        line-height: 1.45;
-    }
-    .criterio-impacto-badge {
-        background: #fde2e2;
-        color: #c0392b;
-        font-size: 0.72rem;
-        font-weight: 800;
-        padding: 2px 8px;
-        border-radius: 999px;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        margin-left: 4px;
-    }
-
-    /* [E4] Cards de acoes prioritarias, recomendacoes e parceiros */
-    .acao-section-header {
-        margin-top: 28px;
-        margin-bottom: 14px;
-        font-size: 1.2rem;
-        font-weight: 800;
-        color: #0A142F;
-        border-bottom: 2px solid rgba(0, 85, 255, 0.15);
-        padding-bottom: 6px;
-    }
-    .acao-card-prioritaria {
-        background: linear-gradient(135deg, #0055FF 0%, #764ba2 100%);
-        color: #FFFFFF;
-        padding: 18px 20px 20px 20px;
-        border-radius: 14px;
-        margin-bottom: 12px;
-        box-shadow: 0 6px 18px rgba(0, 85, 255, 0.22);
-        min-height: 180px;
-        position: relative;
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-    .acao-card-prioritaria:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 10px 24px rgba(0, 85, 255, 0.32);
-    }
-    .acao-numero-badge {
-        display: inline-block;
-        font-size: 2.4rem;
-        font-weight: 900;
-        line-height: 1;
-        color: rgba(255, 255, 255, 0.95);
-        background: rgba(255, 255, 255, 0.15);
-        border-radius: 12px;
-        padding: 4px 14px;
-        margin-bottom: 8px;
-    }
-    .acao-titulo {
-        font-size: 1.05rem;
-        font-weight: 800;
-        margin-top: 8px;
-        margin-bottom: 6px;
-        line-height: 1.25;
-    }
-    .acao-descricao {
-        font-size: 0.9rem;
-        opacity: 0.92;
-        line-height: 1.45;
-        margin-bottom: 8px;
-    }
-    .acao-tags {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 6px;
-        margin-top: 8px;
-    }
-    .acao-tag {
-        background: rgba(255, 255, 255, 0.2);
-        color: #FFFFFF;
-        padding: 3px 10px;
-        border-radius: 999px;
-        font-size: 0.75rem;
-        font-weight: 600;
-        white-space: nowrap;
-    }
-
-    .recomendacao-card {
-        border-left: 4px solid #3498db;
-        background: rgba(52, 152, 219, 0.08);
-        padding: 12px 16px;
-        border-radius: 8px;
-        margin-bottom: 8px;
-        transition: transform 0.15s ease;
-    }
-    .recomendacao-card:hover {
-        transform: translateX(2px);
-    }
-    .recomendacao-titulo {
-        font-weight: 700;
-        color: #1a4d6e;
-        margin-bottom: 4px;
-    }
-    .recomendacao-descricao {
-        font-size: 0.9rem;
-        color: #475569;
-        line-height: 1.45;
-    }
-
-    .parceiro-card {
-        border: 1px solid rgba(0, 0, 0, 0.08);
-        background: #FFFFFF;
-        padding: 14px 18px;
-        border-radius: 10px;
-        margin-bottom: 10px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-        transition: box-shadow 0.15s ease, transform 0.15s ease;
-    }
-    .parceiro-card:hover {
-        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
-        transform: translateY(-2px);
-    }
-    .parceiro-header {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        flex-wrap: wrap;
-        margin-bottom: 6px;
-    }
-    .parceiro-nome {
-        font-weight: 800;
-        color: #0A142F;
-        font-size: 1.02rem;
-    }
-    .parceiro-tipo-badge {
-        color: #FFFFFF;
-        font-size: 0.72rem;
-        font-weight: 800;
-        padding: 2px 10px;
-        border-radius: 999px;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-    .parceiro-match {
-        background: #ECFDF5;
-        color: #047857;
-        font-size: 0.78rem;
-        font-weight: 700;
-        padding: 2px 10px;
-        border-radius: 999px;
-    }
-    .parceiro-motivo {
-        font-size: 0.92rem;
-        color: #475569;
-        line-height: 1.45;
-        margin-top: 4px;
-    }
-    .parceiro-contato {
-        font-size: 0.82rem;
-        color: #64748B;
-        margin-top: 6px;
-    }
-</style>
-""",
-    unsafe_allow_html=True,
-)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -328,36 +32,46 @@ def get_resultado():
 # Gauge plotly — percentual de fit com cores por faixa
 # ─────────────────────────────────────────────────────────────────────────────
 def cor_por_percentual(percentual):
-    if percentual >= 80:
-        return "#27ae60"  # verde — Alto
-    if percentual >= 60:
-        return "#f1c40f"  # amarelo — Medio
+    """Paleta semantica para o gauge."""
+    if percentual >= 70:
+        return "#10B981"  # success — Alto
     if percentual >= 40:
-        return "#f39c12"  # laranja — Baixo
-    return "#e74c3c"      # vermelho — Inviavel
+        return "#F59E0B"  # warning — Medio
+    return "#EF4444"      # error — Baixo/Inviavel
 
 
 def render_gauge(percentual):
-    cor = cor_por_percentual(percentual)
     fig = go.Figure(
         go.Indicator(
             mode="gauge+number",
             value=percentual,
-            number={"suffix": "%", "font": {"size": 48, "color": cor}},
+            domain={"x": [0, 1], "y": [0, 1]},
+            title={"text": "Score de Fit", "font": {"size": 20, "color": "#FBF9F9"}},
+            number={"suffix": "%", "font": {"color": "#E8317E", "size": 48}},
             gauge={
-                "axis": {"range": [0, 100], "tickwidth": 1},
-                "bar": {"color": cor},
-                "bgcolor": "white",
+                "axis": {
+                    "range": [0, 100],
+                    "tickcolor": "#8193A0",
+                    "tickfont": {"color": "#8193A0", "size": 11},
+                },
+                "bar": {"color": "#E8317E", "thickness": 0.30},
+                "bgcolor": "#1A1F24",
+                "borderwidth": 0,
                 "steps": [
-                    {"range": [0, 40], "color": "#fde2e2"},
-                    {"range": [40, 60], "color": "#fdecd2"},
-                    {"range": [60, 80], "color": "#fdf6c2"},
-                    {"range": [80, 100], "color": "#d6f3df"},
+                    {"range": [0, 40], "color": "rgba(239,68,68,0.15)"},
+                    {"range": [40, 70], "color": "rgba(245,158,11,0.15)"},
+                    {"range": [70, 100], "color": "rgba(16,185,129,0.15)"},
                 ],
             },
         )
     )
-    fig.update_layout(height=320, margin=dict(t=10, b=10, l=10, r=10))
+    fig.update_layout(
+        height=350,
+        margin=dict(t=60, b=20, l=20, r=20),
+        paper_bgcolor="#0D1113",
+        plot_bgcolor="#1A1F24",
+        font={"color": "#FBF9F9", "family": "Inter, sans-serif"},
+    )
     st.plotly_chart(fig, use_container_width=True)
 
 
@@ -365,27 +79,38 @@ def render_gauge(percentual):
 # Classificacao em destaque + metric cards
 # ─────────────────────────────────────────────────────────────────────────────
 CLASSIFICACAO_CORES = {
-    "Alto": "#27ae60",
-    "Médio": "#f1c40f",
-    "Medio": "#f1c40f",
-    "Baixo": "#f39c12",
-    "Inviável": "#e74c3c",
-    "Inviavel": "#e74c3c",
+    "Alto": "#10B981",
+    "Médio": "#F59E0B",
+    "Medio": "#F59E0B",
+    "Baixo": "#F59E0B",
+    "Inviável": "#EF4444",
+    "Inviavel": "#EF4444",
 }
 
 
 def render_classificacao(classificacao):
-    cor = CLASSIFICACAO_CORES.get(classificacao, "#0055FF")
+    cor = CLASSIFICACAO_CORES.get(classificacao, "#E8317E")
     st.markdown(
         f"""
-        <div style="background:{cor}; padding:24px; border-radius:16px;
-                    text-align:center; color:white;
-                    box-shadow:0 8px 20px rgba(0,0,0,0.12); margin-bottom:8px;">
-            <div style="font-size:0.95rem; font-weight:700;
-                        text-transform:uppercase; letter-spacing:1px; opacity:0.85;">
-                Classificacao
+        <div style="background:#1A1F24;
+                    padding:28px 24px;
+                    border:1px solid rgba(129, 147, 160, 0.12);
+                    border-top:2px solid {cor};
+                    border-radius:16px;
+                    text-align:center; color:#FBF9F9;
+                    margin-bottom:8px;
+                    transition: border-color 0.25s ease;">
+            <div style="font-size:0.72rem; font-weight:600;
+                        text-transform:uppercase; letter-spacing:0.24em;
+                        color:{cor};
+                        margin-bottom:14px;">
+                · Classificação ·
             </div>
-            <div style="font-size:2.6rem; font-weight:900; margin-top:6px;">
+            <div style="font-family:'Inter',sans-serif;
+                        font-size:2.8rem; font-weight:700;
+                        color:{cor};
+                        letter-spacing:-0.02em;
+                        line-height: 1;">
                 {classificacao.upper()}
             </div>
         </div>
@@ -420,10 +145,12 @@ def render_justificativa(resultado):
     st.subheader("Justificativa do percentual")
     st.markdown(
         f"""
-        <div style="background:#F8FAFC; border-left:6px solid #0055FF;
-                    padding:18px 20px; border-radius:10px;
-                    color:#1f2937; line-height:1.55; font-size:1rem;
-                    margin-top:6px;">
+        <div style="background:#1A1F24;
+                    border:1px solid rgba(129, 147, 160, 0.12);
+                    border-left:3px solid #E8317E;
+                    padding:22px 26px; border-radius:16px;
+                    color:#8193A0; line-height:1.65; font-size:0.98rem;
+                    margin-top:8px;">
             {texto}
         </div>
         """,
@@ -825,8 +552,37 @@ def render_header(resultado):
     titulo = resultado.get("edital_titulo", "Edital sem titulo")
     orgao = resultado.get("orgao", "Orgao nao informado")
     st.title("Diagnostico de Viabilidade")
-    st.markdown('<div class="linha-logo"></div>', unsafe_allow_html=True)
+    st.markdown('<div class="accent-bar"></div>', unsafe_allow_html=True)
     st.caption(f"{titulo} — {orgao}")
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Banner informativo: aparece quando o resultado NAO vem do backend real
+# (origem == "mock" ou "demo"). Backend == "backend" nao mostra nada.
+# ─────────────────────────────────────────────────────────────────────────────
+def render_backend_status_banner(resultado):
+    origem = (resultado or {}).get("_origem", "backend")
+    if origem not in ("mock", "demo"):
+        return
+
+    msg_origem = "exemplo (Modo Demo)" if origem == "demo" else "fallback offline"
+    icone = "✨" if origem == "demo" else "🔧"
+
+    st.markdown(
+        f"""
+        <div class="backend-status-banner">
+            <div class="banner-icon">{icone}</div>
+            <div class="banner-content">
+                <strong>Dados de {msg_origem}</strong>
+                <p>O backend de análise IA (Squad D — FastAPI) ainda está em
+                desenvolvimento. Quando estiver pronto, os resultados refletirão
+                a análise real do seu edital. Por enquanto, você está
+                visualizando dados de demonstração para validar a interface.</p>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -837,6 +593,7 @@ def main():
     if not resultado:
         render_empty_state()
     render_header(resultado)
+    render_backend_status_banner(resultado)
     render_metric_cards(resultado)
     col_gauge, col_class = st.columns([1.4, 1])
     with col_gauge:
