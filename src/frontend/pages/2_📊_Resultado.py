@@ -11,15 +11,10 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-from src.frontend.utils.exportar import gerar_markdown
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Identidade visual i9+ — coerente com app.py e 1_📄_Upload.py da E1
-# ─────────────────────────────────────────────────────────────────────────────
-from src.frontend.utils.plotly_theme import apply_theme
-from src.frontend.utils.demo_data import render_backend_status_pill
-from src.frontend.utils.styles import inject_global_ui
+from src.frontend.utils.exportar import gerar_markdown  # noqa: E402
+from src.frontend.utils.plotly_theme import apply_theme  # noqa: E402
+from src.frontend.utils.demo_data import render_backend_status_pill  # noqa: E402
+from src.frontend.utils.styles import inject_global_ui  # noqa: E402
 
 inject_global_ui()
 render_backend_status_pill()
