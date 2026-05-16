@@ -1,5 +1,11 @@
-# Squad Responsável: Squad E — Frontend & Monitoramento
-#
-# Responsabilidades:
-# - Configurar variáveis de tema do Streamlit (cores, fontes)
-# - Configurar porta e layout padrão
+[server]
+port = 8501
+headless = true
+
+[theme]
+base = "dark"
+primaryColor = "#E8317E"
+backgroundColor = "#0D1113"
+secondaryBackgroundColor = "#1A1F24"
+textColor = "#FBF9F9"
+font = "sans serif"
