@@ -85,7 +85,7 @@ MOCK_RESULTADO = {
 }
 
 
-def analisar_edital(arquivo_pdf, progresso):
+def analisar_edital(arquivo_pdf, docs_empresa, progresso):
     """Chama o backend (D3) e devolve o ResultadoFit. Fallback mock quando offline.
 
     Marca o campo `_origem` no dict de retorno:
@@ -94,15 +94,17 @@ def analisar_edital(arquivo_pdf, progresso):
     """
     try:
         progresso.progress(20, text="Enviando PDF ao backend...")
+        files = [
+            ("file", (arquivo_pdf.name, arquivo_pdf.getvalue(), "application/pdf")),
+        ]
+        for d in docs_empresa or []:
+            files.append((
+                "docs_empresa",
+                (d.name, d.getvalue(), d.type or "application/octet-stream"),
+            ))
         response = requests.post(
             f"{BACKEND_URL}/analisar-edital",
-            files={
-                "file": (
-                    arquivo_pdf.name,
-                    arquivo_pdf.getvalue(),
-                    "application/pdf",
-                )
-            },
+            files=files,
             timeout=180,
         )
         response.raise_for_status()
@@ -206,7 +208,7 @@ with col_limpar:
 
 if analisar and edital_pdf is not None and not edital_excedeu:
     progresso = st.progress(0, text="Iniciando análise...")
-    resultado, erro_backend = analisar_edital(edital_pdf, progresso)
+    resultado, erro_backend = analisar_edital(edital_pdf, docs_empresa, progresso)
 
     if erro_backend:
         st.warning(
