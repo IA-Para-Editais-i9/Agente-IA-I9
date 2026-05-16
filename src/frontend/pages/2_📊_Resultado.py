@@ -4,15 +4,17 @@ from datetime import datetime
 import plotly.graph_objects as go
 import streamlit as st
 
-from src.frontend.utils.exportar import gerar_markdown
+st.set_page_config(
+    page_title="Resultado — i9+",
+    page_icon="📊",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
 
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Identidade visual i9+ — coerente com app.py e 1_📄_Upload.py da E1
-# ─────────────────────────────────────────────────────────────────────────────
-from src.frontend.utils.plotly_theme import apply_theme
-from src.frontend.utils.demo_data import render_backend_status_pill
-from src.frontend.utils.styles import inject_global_ui
+from src.frontend.utils.exportar import gerar_markdown  # noqa: E402
+from src.frontend.utils.plotly_theme import apply_theme  # noqa: E402
+from src.frontend.utils.demo_data import render_backend_status_pill  # noqa: E402
+from src.frontend.utils.styles import inject_global_ui  # noqa: E402
 
 inject_global_ui()
 render_backend_status_pill()
@@ -82,7 +84,7 @@ CLASSIFICACAO_CORES = {
     "Alto": "#10B981",
     "Médio": "#F59E0B",
     "Medio": "#F59E0B",
-    "Baixo": "#F59E0B",
+    "Baixo": "#EF4444",
     "Inviável": "#EF4444",
     "Inviavel": "#EF4444",
 }
@@ -120,16 +122,13 @@ def render_classificacao(classificacao):
 
 
 def render_metric_cards(resultado):
-    col1, col2, col3, col4 = st.columns(4)
+    col1, col2, col3 = st.columns(3)
     with col1:
-        st.metric("Edital", resultado.get("edital_titulo", "—"))
+        st.metric("Classificação", resultado.get("classificacao", "—"))
     with col2:
-        st.metric("Orgao", resultado.get("orgao", "—"))
+        st.metric("Valor estimado", resultado.get("valor_estimado", "—"))
     with col3:
-        percentual = resultado.get("percentual", 0)
-        st.metric("Percentual de Fit", f"{percentual}%")
-    with col4:
-        st.metric("Classificacao", resultado.get("classificacao", "—"))
+        st.metric("Prazo entrega proposta", resultado.get("prazo_entrega_proposta", "—"))
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -375,7 +374,7 @@ def render_parceiro(parceiro):
 # ─────────────────────────────────────────────────────────────────────────────
 def render_tabs_placeholders(resultado):
     tab_geral, tab_criterios, tab_acoes = st.tabs(
-        ["Visao Geral", "Criterios e Gaps", "Acoes e Recomendacoes"]
+        ["📋 Visão Geral", "✓ Critérios", "🎯 Ações e Recomendações"]
     )
 
     with tab_geral:

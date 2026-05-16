@@ -170,45 +170,40 @@ def main() -> None:
         render_empty_state()
         return
 
-    # Filtros pills (visuais — só destacam total atual)
+    # Filtros clicáveis por classificação
     total = len(historico)
     alto = sum(1 for it in historico if it.get("percentual", 0) >= 70)
     medio = sum(1 for it in historico if 40 <= it.get("percentual", 0) < 70)
     baixo = sum(1 for it in historico if it.get("percentual", 0) < 40)
 
-    st.markdown(
-        f"""
-        <div style="display:flex; gap:8px; flex-wrap:wrap; margin: 4px 0 22px;">
-            <span style="background:rgba(232,49,126,0.12); color:#E8317E;
-                         padding:6px 16px; border-radius:999px;
-                         font-size:0.82rem; font-weight:600;
-                         border:1px solid rgba(232,49,126,0.30);">
-                Todas · {total}
-            </span>
-            <span style="background:rgba(16,185,129,0.10); color:#10B981;
-                         padding:6px 16px; border-radius:999px;
-                         font-size:0.82rem; font-weight:600;
-                         border:1px solid rgba(16,185,129,0.22);">
-                Score alto · {alto}
-            </span>
-            <span style="background:rgba(245,158,11,0.10); color:#F59E0B;
-                         padding:6px 16px; border-radius:999px;
-                         font-size:0.82rem; font-weight:600;
-                         border:1px solid rgba(245,158,11,0.22);">
-                Médio · {medio}
-            </span>
-            <span style="background:rgba(239,68,68,0.10); color:#EF4444;
-                         padding:6px 16px; border-radius:999px;
-                         font-size:0.82rem; font-weight:600;
-                         border:1px solid rgba(239,68,68,0.22);">
-                Baixo · {baixo}
-            </span>
-        </div>
-        """,
-        unsafe_allow_html=True,
+    if "filtro_historico" not in st.session_state:
+        st.session_state["filtro_historico"] = "todas"
+
+    c1, c2, c3, c4 = st.columns(4)
+    with c1:
+        if st.button(f"Todas ({total})", use_container_width=True, key="filt_todas"):
+            st.session_state["filtro_historico"] = "todas"
+    with c2:
+        if st.button(f"Alto ({alto})", use_container_width=True, key="filt_alto"):
+            st.session_state["filtro_historico"] = "Alto"
+    with c3:
+        if st.button(f"Médio ({medio})", use_container_width=True, key="filt_medio"):
+            st.session_state["filtro_historico"] = "Médio"
+    with c4:
+        if st.button(f"Baixo ({baixo})", use_container_width=True, key="filt_baixo"):
+            st.session_state["filtro_historico"] = "Baixo"
+
+    filtro = st.session_state["filtro_historico"]
+    itens_visiveis = (
+        historico
+        if filtro == "todas"
+        else [i for i in historico if i.get("classificacao") == filtro]
     )
 
-    for index, item in enumerate(historico):
+    if not itens_visiveis:
+        st.info(f"Nenhuma análise com classificação **{filtro}** no histórico.")
+
+    for index, item in enumerate(itens_visiveis):
         render_item_historico(item, index)
 
     st.divider()

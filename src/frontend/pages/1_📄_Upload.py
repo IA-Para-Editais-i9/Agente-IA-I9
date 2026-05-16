@@ -11,10 +11,9 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-from src.frontend.utils.demo_data import seed_demo
-from src.frontend.utils.plotly_theme import apply_theme
-from src.frontend.utils.demo_data import render_backend_status_pill
-from src.frontend.utils.styles import inject_global_ui
+from src.frontend.utils.demo_data import seed_demo, render_backend_status_pill  # noqa: E402
+from src.frontend.utils.plotly_theme import apply_theme  # noqa: E402
+from src.frontend.utils.styles import inject_global_ui  # noqa: E402
 
 inject_global_ui()
 render_backend_status_pill()
@@ -85,7 +84,7 @@ MOCK_RESULTADO = {
 }
 
 
-def analisar_edital(arquivo_pdf, progresso):
+def analisar_edital(arquivo_pdf, docs_empresa, progresso):
     """Chama o backend (D3) e devolve o ResultadoFit. Fallback mock quando offline.
 
     Marca o campo `_origem` no dict de retorno:
@@ -94,15 +93,17 @@ def analisar_edital(arquivo_pdf, progresso):
     """
     try:
         progresso.progress(20, text="Enviando PDF ao backend...")
+        files = [
+            ("file", (arquivo_pdf.name, arquivo_pdf.getvalue(), "application/pdf")),
+        ]
+        for d in docs_empresa or []:
+            files.append((
+                "docs_empresa",
+                (d.name, d.getvalue(), d.type or "application/octet-stream"),
+            ))
         response = requests.post(
             f"{BACKEND_URL}/analisar-edital",
-            files={
-                "file": (
-                    arquivo_pdf.name,
-                    arquivo_pdf.getvalue(),
-                    "application/pdf",
-                )
-            },
+            files=files,
             timeout=180,
         )
         response.raise_for_status()
@@ -206,7 +207,7 @@ with col_limpar:
 
 if analisar and edital_pdf is not None and not edital_excedeu:
     progresso = st.progress(0, text="Iniciando análise...")
-    resultado, erro_backend = analisar_edital(edital_pdf, progresso)
+    resultado, erro_backend = analisar_edital(edital_pdf, docs_empresa, progresso)
 
     if erro_backend:
         st.warning(
@@ -257,9 +258,4 @@ if st.session_state.get("analise_concluida"):
         use_container_width=True,
         key="ir_resultado",
     ):
-        # TODO(E2): descomentar quando a página 2_📊_Resultado.py for entregue:
-        # st.switch_page("pages/2_📊_Resultado.py")
-        st.info(
-            "A página de **Resultado** ainda não foi entregue (task E2). "
-            "Os dados estão salvos em `st.session_state['resultado_fit']`."
-        )
+        st.switch_page("pages/2_📊_Resultado.py")
