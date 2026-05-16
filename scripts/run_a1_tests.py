@@ -1,45 +1,155 @@
-from src.pipeline.pipeline import Pipeline
+from __future__ import annotations
+
+import os
+import subprocess
+import sys
+from dataclasses import dataclass
+from pathlib import Path
+from time import perf_counter
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
 from src.pipeline.context import PipelineContext
 from src.pipeline.filters.f01_ingestion import IngestionFilter
-import os
-'''
-teste da atividade 1 Squad A, cria a pasta output(já no gitignore) e cria txt dos markdown dos editais pra conferencia de tabelas/estruturas/edge cases
-'''
+from src.pipeline.pipeline import Pipeline
 
-PDFS = [
-    "data/editais/samples/06_02_2026_T_Energetica_Regulamento.pdf",
-    # "data/editais/samples/Boletim-de-Oportunidades-09-2025.pdf",
-    # "data/editais/samples/Chamada-Publica-03.2025-MCTI embrapii.pdf"
-]
 
-def main():
-    os.makedirs("outputs", exist_ok=True)
+
+@dataclass
+class PdfSmokeResult:
+    pdf: str
+    ok: bool
+    elapsed_s: float
+    markdown_chars: int = 0
+    error: str | None = None
+    skipped: bool = False
+
+
+def _ocr_is_available() -> bool:
+    """
+    OCR é opcional. Consideramos "disponível" apenas se o pytesseract consegue
+    listar idiomas no runtime (isso valida que o binário/tessdata existem).
+    """
+    try:
+        import pytesseract  # type: ignore
+        from PIL import Image  # type: ignore
+
+        # Sanity check real: tenta rodar OCR mínimo; assim detecta falta de tessdata.
+        img = Image.new("RGB", (1, 1), color=(255, 255, 255))
+        _ = pytesseract.image_to_string(img, lang=os.getenv("TESSERACT_LANG", "por"))
+        return True
+    except Exception:
+        return False
+
+
+def _print_header(title: str) -> None:
+    print("\n" + "=" * 80)
+    print(title)
+    print("=" * 80)
+
+
+def _run_pytest() -> int:
+    _print_header("pytest (unit + integration)")
+    cmd = [sys.executable, "-m", "pytest", "-q"]
+    proc = subprocess.run(cmd)
+    if proc.returncode == 0:
+        print("OK: pytest passou.")
+    else:
+        print(f"ERRO: pytest falhou (exit_code={proc.returncode}).")
+    return proc.returncode
+
+
+def _discover_pdfs() -> list[str]:
+    base = Path("data")
+    if not base.exists():
+        return []
+    return sorted(str(p) for p in base.rglob("*.pdf"))
+
+
+def _smoke_test_pdfs(pdfs: list[str]) -> tuple[list[PdfSmokeResult], int]:
+    _print_header("Smoke test: f01_ingestion (PDF -> Markdown)")
+
+    if not pdfs:
+        print("ERRO: nenhum PDF encontrado em `data/`.")
+        return [], 1
+
+    ocr_available = _ocr_is_available()
+    if not ocr_available:
+        print("WARN: OCR indisponível (tesseract/tessdata não configurado). PDFs escaneados podem ser ignorados.")
+
     pipeline = Pipeline([IngestionFilter()])
+    results: list[PdfSmokeResult] = []
 
-   
-    for pdf in PDFS:
-        print(f"\n>> Processando: {pdf}")
+    for pdf in pdfs:
+        t0 = perf_counter()
+        try:
+            ctx = PipelineContext(pdf_path=pdf)
+            out = pipeline.run(ctx)
+            md = (out.markdown_text or "").strip()
+            elapsed = perf_counter() - t0
 
-        context = PipelineContext(pdf_path=pdf)
-        result = pipeline.run(context)
+            ok = len(md) >= 200
+            skipped = False
+            err = None
+            if not ok and not ocr_available:
+                # Sem OCR, PDF escaneado pode resultar em markdown vazio.
+                # Nesse cenário, reportamos como SKIP ao invés de FAIL.
+                skipped = True
+                err = "OCR indisponível; possível PDF escaneado (skip)"
+            elif not ok:
+                err = "markdown vazio/curto demais (<200 chars)"
 
-        output_file = f"outputs/{os.path.basename(pdf)}.txt"
+            results.append(
+                PdfSmokeResult(
+                    pdf=pdf,
+                    ok=ok,
+                    elapsed_s=elapsed,
+                    markdown_chars=len(md),
+                    error=err,
+                    skipped=skipped,
+                )
+            )
+        except Exception as e:
+            elapsed = perf_counter() - t0
+            results.append(PdfSmokeResult(pdf=pdf, ok=False, elapsed_s=elapsed, error=str(e)))
 
-        with open(output_file, "w", encoding="utf-8") as f:
-            f.write(result.markdown_text)
+    for r in results:
+        status = "OK " if r.ok else ("SKIP" if r.skipped else "FAIL")
+        extra = f"{r.markdown_chars} chars" if r.ok else (r.error or "erro desconhecido")
+        print(f"{status} | {r.elapsed_s:6.2f}s | {extra:40} | {r.pdf}")
 
-        print(f"Arquivo salvo em: {output_file}")
-        print("Processamento concluído.")
+    fail_count = sum(1 for r in results if (not r.ok and not r.skipped))
+    skip_count = sum(1 for r in results if r.skipped)
+    ok_count = sum(1 for r in results if r.ok)
 
-    '''
-        print(f">> Processando: {pdf}")
+    if fail_count == 0:
+        if skip_count:
+            print(f"\nOK: {ok_count}/{len(results)} OK, {skip_count} SKIP (OCR indisponível).")
+        else:
+            print(f"\nOK: {len(results)}/{len(results)} PDFs convertidos com sucesso.")
+        return results, 0
 
-        print("\n=== INÍCIO ===\n")
-        print(result.markdown_text[:2000])
+    print(f"\nERRO: {fail_count}/{len(results)} PDFs falharam.")
+    return results, 1
 
-        print("\n=== FIM ===\n")
-        print(result.markdown_text[-1000:])
-    '''
+
+def main() -> int:
+    os.makedirs("outputs", exist_ok=True)
+
+    pytest_code = _run_pytest()
+    pdfs = _discover_pdfs()
+    _, smoke_code = _smoke_test_pdfs(pdfs)
+
+    _print_header("Resumo")
+    if pytest_code == 0 and smoke_code == 0:
+        print("TUDO CERTO: testes + ingestão PDF funcionando.")
+        return 0
+
+    print("ALGO QUEBROU: veja as seções acima (pytest / smoke test).")
+    return 1
+
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())
