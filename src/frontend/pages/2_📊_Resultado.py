@@ -4,6 +4,13 @@ from datetime import datetime
 import plotly.graph_objects as go
 import streamlit as st
 
+st.set_page_config(
+    page_title="Resultado — i9+",
+    page_icon="📊",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
+
 from src.frontend.utils.exportar import gerar_markdown
 
 
