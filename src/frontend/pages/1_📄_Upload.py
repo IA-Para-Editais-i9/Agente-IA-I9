@@ -8,88 +8,18 @@ st.set_page_config(
     page_title="Upload do Edital",
     page_icon="📤",
     layout="centered",
+    initial_sidebar_state="expanded",
 )
 
-st.markdown(
-    """
-<style>
-    #MainMenu {visibility: hidden;} footer {visibility: hidden;} header {visibility: hidden;}
-    .stApp { background-color: #F8FAFC; }
+from src.frontend.utils.demo_data import seed_demo
+from src.frontend.utils.plotly_theme import apply_theme
+from src.frontend.utils.demo_data import render_backend_status_pill
+from src.frontend.utils.styles import inject_global_ui
 
-    h1 {
-        color: #0A142F !important;
-        font-weight: 900 !important;
-        font-size: 3rem !important;
-        margin-bottom: 0px !important;
-    }
-    .linha-logo {
-        height: 6px; width: 100px;
-        background: linear-gradient(to right, #E60049 0%, #0055FF 100%);
-        border-radius: 3px; margin-top: 10px; margin-bottom: 30px;
-    }
+inject_global_ui()
+render_backend_status_pill()
+apply_theme()
 
-    [data-testid="stSidebar"] {
-        background-color: #050B14 !important;
-        border-right: 2px solid rgba(0, 85, 255, 0.3);
-    }
-    [data-testid="stSidebarNav"] span, [data-testid="stSidebarNav"] svg {
-        color: #FFFFFF !important;
-        font-weight: 600;
-    }
-    [data-testid="stSidebar"] p, [data-testid="stSidebar"] div, [data-testid="stSidebar"] h2 {
-        color: #F8FAFC !important;
-    }
-    [data-testid="stSidebar"] button {
-        background-color: #0055FF !important;
-        color: #FFFFFF !important;
-        border: none !important;
-        font-weight: bold;
-        transition: all 0.3s ease;
-    }
-    [data-testid="stSidebar"] button:hover {
-        background-color: #E60049 !important;
-        transform: scale(1.02);
-    }
-
-    [data-testid="stFileUploadDropzone"] {
-        background-color: #FFFFFF;
-        border: 2px dashed #0055FF;
-        border-radius: 16px; padding: 25px; transition: all 0.3s ease;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.02);
-    }
-    [data-testid="stFileUploadDropzone"]:hover {
-        background-color: #F0F5FF; border: 2px solid #E60049;
-        box-shadow: 0 10px 25px rgba(0, 85, 255, 0.15); transform: scale(1.01);
-    }
-
-    .step-badge {
-        background: #0A142F; color: white;
-        padding: 4px 12px; border-radius: 20px;
-        font-size: 0.9rem; font-weight: bold; margin-right: 10px;
-    }
-    .step-title {
-        color: #0A142F; font-size: 1.4rem; font-weight: 900;
-        margin-bottom: 5px; display: flex; align-items: center;
-    }
-
-    .status-card {
-        background: #ECFDF5;
-        border-left: 6px solid #10B981;
-        padding: 20px; border-radius: 12px;
-        margin-top: 25px; margin-bottom: 15px;
-    }
-    .status-card h3 {
-        color: #047857 !important;
-        margin-top: 0; margin-bottom: 8px;
-        font-size: 1.2rem; font-weight: 900;
-    }
-    .status-card p {
-        color: #065F46; margin: 0; font-size: 1rem;
-    }
-</style>
-""",
-    unsafe_allow_html=True,
-)
 
 BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8000")
 MAX_SIZE_MB = 100
@@ -105,6 +35,7 @@ for chave, valor in DEFAULT_STATE.items():
         st.session_state[chave] = valor
 
 MOCK_RESULTADO = {
+    "_origem": "mock",
     "edital_titulo": "Edital de Inovação 001/2026",
     "orgao": "Ministério da Ciência e Tecnologia",
     "resumo_executivo": (
@@ -155,7 +86,12 @@ MOCK_RESULTADO = {
 
 
 def analisar_edital(arquivo_pdf, progresso):
-    """Chama o backend (D3) e devolve o ResultadoFit. Fallback mock quando offline."""
+    """Chama o backend (D3) e devolve o ResultadoFit. Fallback mock quando offline.
+
+    Marca o campo `_origem` no dict de retorno:
+    - "backend" quando o POST retorna 200
+    - "mock"    quando ha falha de rede / erro HTTP / timeout
+    """
     try:
         progresso.progress(20, text="Enviando PDF ao backend...")
         response = requests.post(
@@ -172,6 +108,9 @@ def analisar_edital(arquivo_pdf, progresso):
         response.raise_for_status()
         progresso.progress(80, text="Processando resposta...")
         resultado = response.json()
+        # Marca a origem do resultado para o banner de status no Resultado
+        if isinstance(resultado, dict):
+            resultado["_origem"] = "backend"
         progresso.progress(100, text="Análise concluída!")
         return resultado, None
     except requests.RequestException as exc:
@@ -183,11 +122,13 @@ def analisar_edital(arquivo_pdf, progresso):
         ]:
             time.sleep(0.4)
             progresso.progress(valor, text=texto)
-        return MOCK_RESULTADO, str(exc)
+        # Copia rasa pra nao mutar o MOCK global; preserva _origem="mock"
+        mock = {**MOCK_RESULTADO, "_origem": "mock", "_erro_backend": str(exc)}
+        return mock, str(exc)
 
 
 st.title("Upload de Documentos")
-st.markdown('<div class="linha-logo"></div>', unsafe_allow_html=True)
+st.markdown('<div class="accent-bar"></div>', unsafe_allow_html=True)
 st.markdown(
     "<p style='color: #475569; font-size: 1.15rem; margin-bottom: 30px;'>"
     "Inicie a varredura inteligente do seu edital público e acervos."
@@ -242,7 +183,7 @@ edital_excedeu = (
     edital_pdf is not None and edital_pdf.size > MAX_SIZE_MB * 1024 * 1024
 )
 
-col_acao, col_limpar = st.columns([2, 1])
+col_acao, col_demo, col_limpar = st.columns([2, 1.4, 1])
 with col_acao:
     analisar = st.button(
         "🚀 Iniciar Análise IA",
@@ -250,6 +191,14 @@ with col_acao:
         use_container_width=True,
         disabled=(edital_pdf is None or edital_excedeu),
     )
+with col_demo:
+    if st.button(
+        "✨ Modo Demo",
+        use_container_width=True,
+        help="Carrega 3 análises de exemplo sem PDF nem backend.",
+    ):
+        seed_demo(st.session_state)
+        st.switch_page("pages/2_📊_Resultado.py")
 with col_limpar:
     if st.button("🗑️ Limpar", use_container_width=True):
         st.session_state.clear()
@@ -287,7 +236,7 @@ if analisar and edital_pdf is not None and not edital_excedeu:
     historico.insert(0, item)
     st.session_state["historico"] = historico[:50]
 
-    st.toast("Análise concluída com sucesso!", icon="✅")
+    st.toast("✅ Análise concluída com sucesso!")
 
 if st.session_state.get("analise_concluida"):
     nome = st.session_state.get("edital_nome") or "—"
