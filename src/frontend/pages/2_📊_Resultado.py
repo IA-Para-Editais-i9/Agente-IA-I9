@@ -89,7 +89,7 @@ CLASSIFICACAO_CORES = {
     "Alto": "#10B981",
     "Médio": "#F59E0B",
     "Medio": "#F59E0B",
-    "Baixo": "#F59E0B",
+    "Baixo": "#EF4444",
     "Inviável": "#EF4444",
     "Inviavel": "#EF4444",
 }
