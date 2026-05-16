@@ -127,16 +127,13 @@ def render_classificacao(classificacao):
 
 
 def render_metric_cards(resultado):
-    col1, col2, col3, col4 = st.columns(4)
+    col1, col2, col3 = st.columns(3)
     with col1:
-        st.metric("Edital", resultado.get("edital_titulo", "—"))
+        st.metric("Classificação", resultado.get("classificacao", "—"))
     with col2:
-        st.metric("Orgao", resultado.get("orgao", "—"))
+        st.metric("Valor estimado", resultado.get("valor_estimado", "—"))
     with col3:
-        percentual = resultado.get("percentual", 0)
-        st.metric("Percentual de Fit", f"{percentual}%")
-    with col4:
-        st.metric("Classificacao", resultado.get("classificacao", "—"))
+        st.metric("Prazo entrega proposta", resultado.get("prazo_entrega_proposta", "—"))
 
 
 # ─────────────────────────────────────────────────────────────────────────────
