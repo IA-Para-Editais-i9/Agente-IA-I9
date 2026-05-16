@@ -13,132 +13,14 @@ from src.frontend.utils.exportar import gerar_markdown
 # ─────────────────────────────────────────────────────────────────────────────
 # Identidade visual i9+ — coerente com app.py / 1_Upload / 2_Resultado
 # ─────────────────────────────────────────────────────────────────────────────
-st.markdown(
-    """
-<style>
-    #MainMenu {visibility: hidden;} footer {visibility: hidden;} header {visibility: hidden;}
+from src.frontend.utils.plotly_theme import apply_theme
+from src.frontend.utils.demo_data import render_backend_status_pill
+from src.frontend.utils.styles import inject_global_ui
 
-    .stApp {
-        background-color: #F8FAFC;
-        background-image:
-            radial-gradient(at 10% 10%, rgba(0, 85, 255, 0.08) 0px, transparent 50%),
-            radial-gradient(at 90% 10%, rgba(230, 0, 73, 0.05) 0px, transparent 50%);
-        background-attachment: fixed;
-    }
+inject_global_ui()
+render_backend_status_pill()
+apply_theme()
 
-    h1 {
-        background: linear-gradient(to right, #0A142F 0%, #0055FF 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        font-weight: 900 !important;
-        font-size: 2.8rem !important;
-        margin-bottom: 0px !important;
-    }
-
-    .linha-logo {
-        height: 6px; width: 100px;
-        background: linear-gradient(to right, #E60049 0%, #0055FF 100%);
-        border-radius: 4px; margin-top: 12px; margin-bottom: 24px;
-        box-shadow: 0 4px 15px rgba(230, 0, 73, 0.4);
-    }
-
-    [data-testid="stSidebar"] {
-        background-color: #050B14 !important;
-        border-right: 2px solid rgba(0, 85, 255, 0.3);
-    }
-    [data-testid="stSidebarNav"] span, [data-testid="stSidebarNav"] svg {
-        color: #FFFFFF !important;
-        font-weight: 600;
-    }
-    [data-testid="stSidebar"] p, [data-testid="stSidebar"] div, [data-testid="stSidebar"] h2 {
-        color: #F8FAFC !important;
-    }
-    [data-testid="stSidebar"] button {
-        background-color: #0055FF !important;
-        color: #FFFFFF !important;
-        border: none !important;
-        font-weight: bold;
-        transition: all 0.3s ease;
-    }
-    [data-testid="stSidebar"] button:hover {
-        background-color: #E60049 !important;
-        transform: scale(1.02);
-    }
-
-    /* Card do historico */
-    .historico-card {
-        background: #FFFFFF;
-        border-left: 6px solid #0055FF;
-        border-radius: 12px;
-        padding: 16px 20px;
-        margin-bottom: 10px;
-        box-shadow: 0 4px 12px rgba(0, 11, 20, 0.06);
-        animation: fadeInUp 0.35s ease-out;
-        transition: transform 0.18s ease, box-shadow 0.18s ease;
-    }
-    .historico-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 10px 24px rgba(0, 85, 255, 0.12);
-    }
-    .historico-card-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-        flex-wrap: wrap;
-        margin-bottom: 6px;
-    }
-    .historico-titulo {
-        color: #0A142F;
-        font-weight: 800;
-        font-size: 1.05rem;
-        line-height: 1.3;
-    }
-    .historico-percentual-badge {
-        color: #FFFFFF;
-        font-weight: 900;
-        padding: 4px 14px;
-        border-radius: 999px;
-        font-size: 0.95rem;
-        letter-spacing: 0.3px;
-    }
-    .historico-meta {
-        color: #64748B;
-        font-size: 0.88rem;
-        line-height: 1.55;
-    }
-
-    /* Empty state amigavel */
-    .historico-empty {
-        background: #FFFFFF;
-        border-left: 6px solid #E60049;
-        padding: 28px;
-        border-radius: 14px;
-        box-shadow: 0 8px 24px rgba(0, 11, 20, 0.06);
-        margin-top: 20px;
-        margin-bottom: 20px;
-    }
-    .historico-empty h3 {
-        color: #0A142F !important;
-        margin-top: 0;
-        margin-bottom: 10px;
-        font-weight: 900;
-    }
-    .historico-empty p {
-        color: #475569;
-        font-size: 1.05rem;
-        line-height: 1.5;
-        margin: 0;
-    }
-
-    @keyframes fadeInUp {
-        from { opacity: 0; transform: translateY(8px); }
-        to   { opacity: 1; transform: translateY(0); }
-    }
-</style>
-""",
-    unsafe_allow_html=True,
-)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -156,13 +38,12 @@ def format_timestamp(iso_string: str) -> str:
 
 
 def get_color_by_percentual(percentual: float) -> str:
-    if percentual >= 80:
-        return "#27ae60"
-    if percentual >= 60:
-        return "#f1c40f"
+    """Paleta semantica coerente com o tema (success/warning/error)."""
+    if percentual >= 70:
+        return "#10B981"
     if percentual >= 40:
-        return "#f39c12"
-    return "#e74c3c"
+        return "#F59E0B"
+    return "#EF4444"
 
 
 def _slug(texto: str) -> str:
@@ -179,20 +60,33 @@ def _slug(texto: str) -> str:
 def render_empty_state() -> None:
     st.markdown(
         """
-        <div class="historico-empty">
-            <h3>Nenhuma analise realizada ainda</h3>
-            <p>Faca o upload de um edital para comecar. As analises concluidas
-            aparecem aqui automaticamente para consulta posterior.</p>
+        <div style="background:#1A1F24;
+                    border:1px solid rgba(129,147,160,0.12);
+                    padding:48px 36px;
+                    border-radius:16px;
+                    text-align:center;
+                    margin: 20px 0;">
+            <div style="font-size: 3rem; margin-bottom: 18px;">✦</div>
+            <h3 style="color:#FBF9F9; margin:0 0 10px 0; font-size:1.3rem;">
+                Nenhuma análise realizada ainda
+            </h3>
+            <p style="color:#8193A0; font-size:0.98rem; line-height:1.6;
+                      max-width:420px; margin: 0 auto 24px;">
+                Faça o upload de um edital para começar. As análises concluídas
+                aparecem aqui automaticamente para consulta posterior.
+            </p>
         </div>
         """,
         unsafe_allow_html=True,
     )
-    if st.button(
-        "📄 Fazer primeira analise",
-        type="primary",
-        use_container_width=True,
-    ):
-        st.switch_page("pages/1_📄_Upload.py")
+    _, col_centro, _ = st.columns([1, 1.4, 1])
+    with col_centro:
+        if st.button(
+            "Fazer primeira análise",
+            type="primary",
+            use_container_width=True,
+        ):
+            st.switch_page("pages/1_📄_Upload.py")
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -208,14 +102,27 @@ def render_item_historico(item: dict, index: int) -> None:
 
     st.markdown(
         f"""
-        <div class="historico-card" style="border-left-color:{cor};">
-            <div class="historico-card-header">
-                <span class="historico-titulo">{titulo}</span>
-                <span class="historico-percentual-badge" style="background:{cor};">
+        <div style="background:#1A1F24;
+                    border:1px solid rgba(129,147,160,0.12);
+                    border-left:3px solid {cor};
+                    border-radius:16px;
+                    padding:20px 22px;
+                    margin-bottom:10px;
+                    transition: all 0.25s ease;"
+             onmouseover="this.style.borderColor='#E8317E'; this.style.transform='translateY(-2px)';"
+             onmouseout="this.style.borderColor='rgba(129,147,160,0.12)'; this.style.transform='translateY(0)';">
+            <div style="display:flex; align-items:center; justify-content:space-between;
+                        gap:14px; flex-wrap:wrap; margin-bottom:8px;">
+                <span style="color:#FBF9F9; font-weight:600; font-size:1.05rem;
+                             letter-spacing:-0.01em;">{titulo}</span>
+                <span style="background:{cor}1A; color:{cor};
+                             font-weight:700; padding:4px 12px;
+                             border-radius:999px; font-size:0.85rem;
+                             border: 1px solid {cor}33;">
                     {percentual}%
                 </span>
             </div>
-            <div class="historico-meta">
+            <div style="color:#8193A0; font-size:0.85rem; line-height:1.6;">
                 🏛️ {orgao} &nbsp;·&nbsp; 🏷️ {classificacao} &nbsp;·&nbsp; 🕒 {timestamp_fmt}
             </div>
         </div>
@@ -253,8 +160,9 @@ def main() -> None:
     if "historico" not in st.session_state:
         st.session_state["historico"] = []
 
-    st.title("📚 Historico de Analises")
-    st.markdown('<div class="linha-logo"></div>', unsafe_allow_html=True)
+    st.markdown('<div class="eyebrow">· Histórico</div>', unsafe_allow_html=True)
+    st.title("Suas análises anteriores")
+    st.markdown('<div class="accent-bar"></div>', unsafe_allow_html=True)
 
     historico = st.session_state.get("historico") or []
 
@@ -262,18 +170,54 @@ def main() -> None:
         render_empty_state()
         return
 
-    st.caption(f"{len(historico)} analise(s) realizada(s) nesta sessao.")
+    # Filtros pills (visuais — só destacam total atual)
+    total = len(historico)
+    alto = sum(1 for it in historico if it.get("percentual", 0) >= 70)
+    medio = sum(1 for it in historico if 40 <= it.get("percentual", 0) < 70)
+    baixo = sum(1 for it in historico if it.get("percentual", 0) < 40)
+
+    st.markdown(
+        f"""
+        <div style="display:flex; gap:8px; flex-wrap:wrap; margin: 4px 0 22px;">
+            <span style="background:rgba(232,49,126,0.12); color:#E8317E;
+                         padding:6px 16px; border-radius:999px;
+                         font-size:0.82rem; font-weight:600;
+                         border:1px solid rgba(232,49,126,0.30);">
+                Todas · {total}
+            </span>
+            <span style="background:rgba(16,185,129,0.10); color:#10B981;
+                         padding:6px 16px; border-radius:999px;
+                         font-size:0.82rem; font-weight:600;
+                         border:1px solid rgba(16,185,129,0.22);">
+                Score alto · {alto}
+            </span>
+            <span style="background:rgba(245,158,11,0.10); color:#F59E0B;
+                         padding:6px 16px; border-radius:999px;
+                         font-size:0.82rem; font-weight:600;
+                         border:1px solid rgba(245,158,11,0.22);">
+                Médio · {medio}
+            </span>
+            <span style="background:rgba(239,68,68,0.10); color:#EF4444;
+                         padding:6px 16px; border-radius:999px;
+                         font-size:0.82rem; font-weight:600;
+                         border:1px solid rgba(239,68,68,0.22);">
+                Baixo · {baixo}
+            </span>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
     for index, item in enumerate(historico):
         render_item_historico(item, index)
 
     st.divider()
     confirmar = st.checkbox(
-        "Confirmar limpeza do historico (acao nao pode ser desfeita)",
+        "Confirmar limpeza do histórico (ação não pode ser desfeita)",
         key="confirma_limpar_historico",
     )
     if st.button(
-        "🗑️ Limpar Historico",
+        "Limpar histórico",
         disabled=not confirmar,
         use_container_width=True,
     ):
