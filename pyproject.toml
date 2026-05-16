@@ -8,3 +8,9 @@ src = ["src"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "W"]
+
+[tool.ruff.lint.per-file-ignores]
+"src/frontend/utils/styles.py" = ["E501"]
+"src/frontend/utils/demo_data.py" = ["E501"]
+"src/frontend/app.py" = ["E501"]
+"src/frontend/pages/*.py" = ["E501"]
