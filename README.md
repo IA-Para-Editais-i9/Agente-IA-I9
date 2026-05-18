@@ -2,22 +2,37 @@
 
 > **Leitura obrigatória antes de fazer o primeiro commit.**  
 > Este documento explica como o repositório está organizado, como os branches funcionam, quais são as regras de Pull Request e como cada squad deve trabalhar. Se você tiver dúvidas após a leitura, mande uma mensagem para o representante do projeto.
--
 
 ## Sumário
 
-1. [Por que temos essas regras?](#1-por-que-temos-essas-regras)
-2. [O padrão de arquitetura: Pipe & Filter](#2-o-padrão-de-arquitetura-pipe--filter)
-3. [Estrutura de pastas (Filetree)](#3-estrutura-de-pastas-filetree)
-4. [Arquivos que nunca vão para o git](#4-arquivos-que-nunca-vão-para-o-git)
-5. [Estratégia de branches](#5-estratégia-de-branches)
-6. [Regras de proteção por branch](#6-regras-de-proteção-por-branch)
-7. [Como abrir um Pull Request](#7-como-abrir-um-pull-request)
-8. [Convenção de commits](#8-convenção-de-commits)
-9. [CODEOWNERS — quem revisa o quê](#9-codeowners--quem-revisa-o-quê)
-10. [CI — o que roda automaticamente](#10-ci--o-que-roda-automaticamente)
-11. [Fluxo completo de uma tarefa](#11-fluxo-completo-de-uma-tarefa)
-12. [Dúvidas frequentes](#12-dúvidas-frequentes)
+- [Guia de Contribuição — Agente de IA para Editais](#guia-de-contribuição--agente-de-ia-para-editais)
+  - [Sumário](#sumário)
+  - [1. Por que temos essas regras?](#1-por-que-temos-essas-regras)
+  - [2. O padrão de arquitetura: Pipe \& Filter](#2-o-padrão-de-arquitetura-pipe--filter)
+    - [O contrato central: `PipelineContext`](#o-contrato-central-pipelinecontext)
+  - [3. Estrutura de pastas (Filetree)](#3-estrutura-de-pastas-filetree)
+    - [Responsabilidade por pasta](#responsabilidade-por-pasta)
+  - [4. Arquivos que nunca vão para o git](#4-arquivos-que-nunca-vão-para-o-git)
+  - [5. Estratégia de branches](#5-estratégia-de-branches)
+    - [Os 4 níveis explicados](#os-4-níveis-explicados)
+    - [Convenção de nomes para branches de feature](#convenção-de-nomes-para-branches-de-feature)
+  - [6. Regras de proteção por branch](#6-regras-de-proteção-por-branch)
+    - [`main` — protegida, nível máximo](#main--protegida-nível-máximo)
+    - [`develop` — protegida, nível médio](#develop--protegida-nível-médio)
+    - [`squad/*` — semi-protegida](#squad--semi-protegida)
+    - [`feat/*`, `fix/*`, `chore/*` — livre](#feat-fix-chore--livre)
+    - [Como configurar no GitHub](#como-configurar-no-github)
+  - [7. Como abrir um Pull Request](#7-como-abrir-um-pull-request)
+    - [O fluxo padrão de uma tarefa](#o-fluxo-padrão-de-uma-tarefa)
+    - [Template obrigatório de PR](#template-obrigatório-de-pr)
+  - [8. Convenção de commits](#8-convenção-de-commits)
+  - [9. CODEOWNERS — quem revisa o quê](#9-codeowners--quem-revisa-o-quê)
+    - [Por que `base.py` e `context.py` têm revisão de todos?](#por-que-basepy-e-contextpy-têm-revisão-de-todos)
+    - [Como criar os times no GitHub](#como-criar-os-times-no-github)
+  - [10. CI — o que roda automaticamente](#10-ci--o-que-roda-automaticamente)
+  - [11. Fluxo completo de uma tarefa](#11-fluxo-completo-de-uma-tarefa)
+  - [12. Dúvidas frequentes](#12-dúvidas-frequentes)
+
 
 ---
 
@@ -41,7 +56,43 @@ O pipeline segue o padrão **Pipe & Filter**. A ideia é simples:
 - O **pipe** é o `PipelineContext` — um objeto de dados que é criado uma vez e passado de filtro em filtro.
 - Cada filtro recebe o contexto, faz seu trabalho, popula seu campo e devolve o contexto para o próximo.
 
+**Nota:** A conversão inicial PDF → Markdown é feita usando **PyMuPDF + Tesseract** (substituindo o Docling, que não usamos mais).
+
 ```
+PDF input
+   ↓
+f01_ingestion.py    → popula: ctx.markdown_text               (PyMuPDF + Tesseract)  (Squad A)
+   ↓
+f02_indexing.py     → popula: ctx.edital_collection_id        (Squad A)
+                      popula: ctx.empresa_collection_id       (Squad A)
+   ↓
+f03_extraction.py   → popula: ctx.criterios_edital            (Squad B)
+   ↓
+f04_retrieval.py    → popula: ctx.company_chunks              (Squad C)
+   ↓
+f05_inference.py    → popula: ctx.resultado_fit               (Squad C)
+   ↓
+JSON ResultadoFit
+```
+
+### O contrato central: `PipelineContext`
+
+O arquivo `src/pipeline/context.py` define todos os campos que existem no pipeline. **Este arquivo é o contrato entre todos os squads.** Se você precisar adicionar um campo novo, isso afeta todos — veja a seção de CODEOWNERS antes de fazer qualquer mudança.
+
+```python
+# src/pipeline/context.py
+@dataclass
+class PipelineContext:
+    pdf_path: str = ""              # entrada inicial
+
+    markdown_text: str = ""         # saída do f01
+    edital_collection_id: str = ""  # saída do f02 (id da coleção do edital)
+    empresa_collection_id: str = "" # saída do f02 (id da coleção empresa/i9+)
+    criterios_edital: Optional[dict] = None   # saída do f03
+    company_chunks: list[str] = field(default_factory=list)  # saída do f04
+    resultado_fit: Optional[dict] = None      # saída do f05
+```
+
 PDF input
    ↓
 f01_ingestion.py    → popula: ctx.markdown_text          (Squad A)
@@ -67,11 +118,12 @@ O arquivo `src/pipeline/context.py` define todos os campos que existem no pipeli
 class PipelineContext:
     pdf_path: str = ""              # entrada inicial
 
-    markdown_text: str = ""         # saída do f01
-    chroma_collection_id: str = ""  # saída do f02
-    criterios_edital: Optional[dict] = None   # saída do f03
-    company_chunks: list[str] = field(default_factory=list)  # saída do f04
-    resultado_fit: Optional[dict] = None      # saída do f05
+     markdown_text: str = ""         # saída do f01
+     edital_collection_id: str = ""  # saída do f02
+     empresa_collection_id: str = "" # saída do f02 (docs i9)
+     criterios_edital: Optional[dict] = None   # saída do f03
+     company_chunks: list[str] = field(default_factory=list)  # saída do f04
+     resultado_fit: Optional[dict] = None      # saída do f05
 ```
 
 ---
@@ -97,7 +149,7 @@ Agente-IA-i9/
 │   │   ├── context.py                    ← PipelineContext, o "pipe"  [CORE]
 │   │   ├── pipeline.py                   ← orquestrador (Squad D)
 │   │   └── filters/
-│   │       ├── f01_ingestion.py          ← Squad A · PDF → Markdown (Docling)
+│   │       ├── f01_ingestion.py          ← Squad A · PDF → Markdown (PyMuPDF)
 │   │       ├── f02_indexing.py           ← Squad A · Markdown → ChromaDB
 │   │       ├── f03_extraction.py         ← Squad B · Markdown → CriteriosEdital
 │   │       ├── f04_retrieval.py          ← Squad C · Query → Company chunks (RAG)
@@ -141,10 +193,7 @@ Agente-IA-i9/
 │       └── test_pipeline_e2e.py
 │
 ├── docs/
-│   ├── CONTRIBUTING.md                   ← este arquivo
-│   ├── architecture.md
-│   ├── schemas.md
-│   └── api.md
+│   ├── planejamento_equipes_i9_v2.md           ← planejamento por squads/cronograma
 │
 ├── .env.example                          ← template das variáveis (sem valores reais)
 ├── .gitignore
@@ -208,7 +257,7 @@ O repositório usa **4 níveis de branch**. Cada nível tem um propósito difere
 main
 └── develop
       ├── squad/A
-      │     ├── feat/A-A1-docling-setup
+      │     ├── feat/A-A1-pymupdf-setup
       │     ├── feat/A-A2-ingestion-module
       │     └── fix/A-A1-scanned-pdf-edge-case
       ├── squad/B
@@ -235,7 +284,7 @@ main
 feat/<squad>-<id-da-tarefa>-<descricao-curta>
 
 Exemplos:
-  feat/A-A1-docling-setup
+  feat/A-A1-pymupdf-setup
   feat/A-A3-chromadb-collections
   feat/B-B1-criterios-schema
   feat/C-C3-rag-chromadb
@@ -377,7 +426,7 @@ Use o padrão **Conventional Commits**. O formato é:
 O `<escopo>` é o ID da tarefa do backlog (`A1`, `B3`, `D6`, `S1`, etc.).
 
 ```
-feat(A1): configurar Docling e testar com editais reais
+feat(A1): configurar PyMuPDF e testar com editais reais
 feat(B2): integrar Instructor com Groq API usando llama-3.1-8b
 fix(B3): corrigir extração de tabelas em PDFs escaneados
 chore(S1): criar estrutura de pastas e branches do repositório

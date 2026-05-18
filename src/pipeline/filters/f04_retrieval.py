@@ -1,11 +1,22 @@
 from __future__ import annotations
 
+import logging
+
 from src.infrastructure.chroma_manager import ChromaManager
 from src.pipeline.base import Filter
 from src.pipeline.context import PipelineContext
 
+logger = logging.getLogger(__name__)
+
+N_RESULTS = 10  # trechos retornados para o Agente 2
+DISTANCIA_MAX = 1.2  # cos distance: 0=igual, 2=oposto (limiar empírico)
+
 
 class RetrievalFilter(Filter):
+    def run(self, ctx: PipelineContext) -> PipelineContext:
+        self.process(ctx)
+        return ctx
+
     """
     Squad C — C3/C5
 
